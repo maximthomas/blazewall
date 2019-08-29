@@ -1,0 +1,224 @@
+swagger: "2.0"
+info:
+  description: "BlazeWall User Service API specification"
+  version: "1.0.0"
+  title: "User Server"
+  contact:
+    email: "maxim.thomas@gmail.com"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+host: "localhost:8085"
+basePath: "/user-service/v1/"
+tags:
+  - name: "user"
+    description: "Manages users"
+schemes:
+  - "https"
+  - "http"
+paths:
+  /user/{realm}/{id}:
+    get:
+      tags:
+        - "user"
+      summary: "Returns user by realm and id"
+      description: ""
+      operationId: "requestUser"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "realm"
+          in: "path"
+          description: "Realm of the user"
+          required: true
+          type: "string"
+        - name: "id"
+          in: "path"
+          description: "ID of the user"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            $ref: '#/definitions/User'
+        404:
+          description: "user not found status"
+    put:
+      tags:
+        - "user"
+      summary: "Updates existing user"
+      description: ""
+      operationId: "updateUser"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "realm"
+          in: "path"
+          description: "Realm of the user"
+          required: true
+          type: "string"
+        - name: "id"
+          in: "path"
+          description: "ID of the user"
+          required: true
+          type: "string"
+        - in: "body"
+          name: "body"
+          description: "User object that needs to be added to the store"
+          required: true
+          schema:
+            $ref: "#/definitions/User"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            $ref: '#/definitions/User'
+        404:
+          description: "user not found status"
+    delete:
+      tags:
+        - "user"
+      summary: "Removes the user the from realm by id"
+      description: ""
+      operationId: "deleteUser"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "realm"
+          in: "path"
+          description: "Realm of the user"
+          required: true
+          type: "string"
+        - name: "id"
+          in: "path"
+          description: "ID of the user"
+          required: true
+          type: "string"
+      responses:
+        202:
+          description: "successful operation"
+  /:
+    post:
+      tags:
+        - "user"
+      summary: "Creates new user in the realm"
+      description: ""
+      operationId: "createUser"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "User object that needs to be added to the store"
+          required: true
+          schema:
+            $ref: "#/definitions/User"
+      responses:
+        405:
+          description: "Invalid input"
+  /{realm}/{id}/setpassword:
+    post:
+      tags:
+        - "user"
+      summary: "Sets user password"
+      description: ""
+      operationId: "setUserPassword"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "realm"
+          in: "path"
+          description: "Realm of the user"
+          required: true
+          type: "string"
+        - name: "id"
+          in: "path"
+          description: "ID of the user"
+          required: true
+          type: "string"
+        - in: "body"
+          name: "body"
+          description: "New user password"
+          required: true
+          schema:
+            $ref: "#/definitions/Password"
+      responses:
+        202:
+          description: "successful operation"
+        404:
+          description: "user not found status"
+  /{realm}/{id}/validatepassword:
+    post:
+      tags:
+        - "user"
+      summary: "Validates user password"
+      description: ""
+      operationId: "validateUserPassword"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "realm"
+          in: "path"
+          description: "Realm of the user"
+          required: true
+          type: "string"
+        - name: "id"
+          in: "path"
+          description: "ID of the user"
+          required: true
+          type: "string"
+        - in: "body"
+          name: "body"
+          description: "Password to validate"
+          required: true
+          schema:
+            $ref: "#/definitions/Password"
+
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/ValidatePasswordResult"
+        404:
+          description: "user not found status"
+
+definitions:
+  User:
+    type: "object"
+    properties:
+      realm:
+        type: "string"
+      id:
+        type: "string"
+      roles:
+        type: "array"
+        items:
+          type: "string"
+      properties:
+        type: "object"
+        additionalProperties:
+          type: "string"
+
+  ValidatePasswordResult:
+    type: "object"
+    properties:
+      valid:
+        type: "boolean"
+  Password:
+    type: "object"
+    properties:
+      password:
+        type: "string"

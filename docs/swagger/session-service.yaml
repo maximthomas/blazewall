@@ -1,0 +1,128 @@
+swagger: "2.0"
+info:
+  description: "BlazeWall Session Service API specification"
+  version: "1.0.0"
+  title: "Session Service"
+  contact:
+    email: "maxim.thomas@gmail.com"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+host: "localhost:8086"
+basePath: "/session-service/v1/"
+tags:
+  - name: "session"
+    description: "Manages authenticated sessions"
+schemes:
+  - "https"
+  - "http"
+paths:
+  /session/{sessionId}:
+    get:
+      tags:
+        - "session"
+      summary: "Request session data by id"
+      description: ""
+      operationId: "requestSession"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "sessionId"
+          in: "path"
+          description: "ID of the session"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            $ref: '#/definitions/Session'
+    delete:
+      tags:
+        - "session"
+      summary: "Removes session by id"
+      description: ""
+      operationId: "deleteSession"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "sessionId"
+          in: "path"
+          description: "ID of the session"
+          required: true
+          type: "string"
+      responses:
+        202:
+          description: "successful operation"
+
+  /session/findbyuser/{realm}/{id}:
+    get:
+      tags:
+        - "session"
+      summary: "Request sessions by user id"
+      description: ""
+      operationId: "requestUserSession"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "realm"
+          in: "path"
+          description: "User realm"
+          required: true
+          type: "string"
+        - name: "id"
+          in: "path"
+          description: "User Id"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Session'
+  /session:
+    post:
+      tags:
+        - "session"
+      summary: "Creates session"
+      description: ""
+      operationId: "createPolicy"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "Creates session"
+          required: true
+          schema:
+            $ref: "#/definitions/Session"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            $ref: '#/definitions/Session'
+
+definitions:
+  Session:
+    type: "object"
+    properties:
+      id:
+        type: "string"
+      userId:
+        type: "string"
+      realm:
+        type: "string"
+      properties:
+        type: "object"
+        additionalProperties:
+          type: "string"
