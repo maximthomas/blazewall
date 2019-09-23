@@ -1,0 +1,28 @@
+-
+  requestHost: gateway-service
+  targetHost: 'http://protected-resource:8080'
+  pathsConfig:
+    -
+      policyValidator:
+        settings:
+          realms:
+            - staff
+            - users
+        type: realms
+      urlPattern: /
+    -
+      policyValidator:
+        type: allowed
+      urlPattern: /allowed
+-
+  requestHost: gateway-service2
+  targetHost: 'http://protected-resource2:8080'
+  pathsConfig:
+    -
+      policyValidator:
+        type: denied
+      urlPattern: /denied
+    -
+      policyValidator:
+        type: authenticated
+      urlPattern: /authenticated

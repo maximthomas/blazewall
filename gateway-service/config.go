@@ -8,7 +8,7 @@ import (
 	"net/url"
 
 	"github.com/spf13/cast"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 type ProtectedSiteConfig struct {
@@ -23,7 +23,7 @@ type ProtectedPathConfig struct {
 	PolicyValidator PolicyValidator
 }
 
-func NewProtectedSitesConfigYaml(reader io.Reader) ([]ProtectedSiteConfig, error) {
+func NewProtectedSitesConfigYaml(reader io.Reader) (*[]ProtectedSiteConfig, error) {
 
 	type yamlPolicyValidator struct {
 		PolicyType string                 `yaml:"type"`
@@ -48,6 +48,8 @@ func NewProtectedSitesConfigYaml(reader io.Reader) ([]ProtectedSiteConfig, error
 			return AllowedPolicyValidator{}, nil
 		case "denied":
 			return DeniedPolicyValidator{}, nil
+		case "authenticated":
+			return AuthenticatedUserPolicyValidator{}, nil
 		case "realms":
 			realms, err := cast.ToStringSliceE(yp.Settings["realms"])
 			if err != nil {
@@ -95,5 +97,5 @@ func NewProtectedSitesConfigYaml(reader io.Reader) ([]ProtectedSiteConfig, error
 			proxy:                httputil.NewSingleHostReverseProxy(targetURL),
 		}
 	}
-	return result, nil
+	return &result, nil
 }

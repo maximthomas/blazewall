@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"net/http/httputil"
-	"net/url"
 	"path/filepath"
 )
 
@@ -22,26 +21,20 @@ func NewGateway(protectedSitesConfig []ProtectedSiteConfig, sessionRepository Se
 	gateway.ProtectedSitesConfig = make(map[string]ProtectedSiteConfig)
 	gateway.SessionRepository = sessionRepository
 	for _, protectedSiteConfig := range protectedSitesConfig {
-		targetURL, err := url.Parse(protectedSiteConfig.TargetHost)
-		if err != nil {
-			log.Fatal(err)
-			panic(err)
-		}
-		protectedSiteConfig = ProtectedSiteConfig{
-			RequestHost:          protectedSiteConfig.RequestHost,
-			TargetHost:           protectedSiteConfig.TargetHost,
-			ProtectedPathsConfig: protectedSiteConfig.ProtectedPathsConfig,
-			proxy:                httputil.NewSingleHostReverseProxy(targetURL),
-		}
 		gateway.ProtectedSitesConfig[protectedSiteConfig.RequestHost] = protectedSiteConfig
 	}
-
 	return gateway
 }
 
 func (g *Gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path
 
+	dump, err := httputil.DumpRequest(r, false)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	log.Printf("%s", dump)
 	protectedSiteConfig, exists := g.ProtectedSitesConfig[r.Host]
 	if !exists {
 		w.WriteHeader(http.StatusBadRequest)

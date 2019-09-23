@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/http/httputil"
+	"net/url"
 	"testing"
 )
 
@@ -16,6 +18,8 @@ func TestPassThrough(t *testing.T) {
 	protectedServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, wantResponse)
 	}))
+
+	protectedURL, _ := url.Parse(protectedServer.URL)
 
 	gateway := NewGateway([]ProtectedSiteConfig{
 		{
@@ -31,10 +35,9 @@ func TestPassThrough(t *testing.T) {
 					PolicyValidator: DeniedPolicyValidator{},
 				},
 			},
-			proxy: nil,
+			proxy: httputil.NewSingleHostReverseProxy(protectedURL),
 		},
-	},
-		NewInMemorySessionRepository(nil))
+	}, NewInMemorySessionRepository(nil))
 
 	t.Run("test proxy ok", func(t *testing.T) {
 		allowedRequest := newGetRequest("/")
