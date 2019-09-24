@@ -11,11 +11,13 @@ import (
 
 const sessionKey = "blazewall-session"
 
+//Gateway main structure, holds protected sites config and session repository
 type Gateway struct {
 	ProtectedSitesConfig map[string]ProtectedSiteConfig
 	SessionRepository    SessionRepository
 }
 
+//NewGateway constructs new Gateway Instance
 func NewGateway(protectedSitesConfig []ProtectedSiteConfig, sessionRepository SessionRepository) *Gateway {
 	gateway := new(Gateway)
 	gateway.ProtectedSitesConfig = make(map[string]ProtectedSiteConfig)

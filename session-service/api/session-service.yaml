@@ -17,7 +17,7 @@ schemes:
   - "https"
   - "http"
 paths:
-  /session/{sessionId}:
+  /session/{id}:
     get:
       tags:
         - "session"
@@ -50,7 +50,7 @@ paths:
       produces:
         - "application/json"
       parameters:
-        - name: "sessionId"
+        - name: "id"
           in: "path"
           description: "ID of the session"
           required: true
@@ -59,25 +59,25 @@ paths:
         202:
           description: "successful operation"
 
-  /session/findbyuser/{realm}/{id}:
+  /session/:
     get:
       tags:
         - "session"
-      summary: "Request sessions by user id"
+      summary: "Request sessions by user id and/or realm"
       description: ""
-      operationId: "requestUserSession"
+      operationId: "requestUserSessions"
       consumes:
         - "application/json"
       produces:
         - "application/json"
       parameters:
         - name: "realm"
-          in: "path"
+          in: "query"
           description: "User realm"
           required: true
           type: "string"
-        - name: "id"
-          in: "path"
+        - name: "userId"
+          in: "query"
           description: "User Id"
           required: true
           type: "string"
@@ -94,7 +94,7 @@ paths:
         - "session"
       summary: "Creates session"
       description: ""
-      operationId: "createPolicy"
+      operationId: "createSesstion"
       consumes:
         - "application/json"
       produces:
