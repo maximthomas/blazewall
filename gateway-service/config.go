@@ -23,7 +23,7 @@ type ProtectedPathConfig struct {
 	PolicyValidator PolicyValidator
 }
 
-func NewProtectedSitesConfigYaml(reader io.Reader) (*[]ProtectedSiteConfig, error) {
+func NewProtectedSitesConfigYaml(reader io.Reader) ([]ProtectedSiteConfig, error) {
 
 	type yamlPolicyValidator struct {
 		PolicyType string                 `yaml:"type"`
@@ -97,5 +97,5 @@ func NewProtectedSitesConfigYaml(reader io.Reader) (*[]ProtectedSiteConfig, erro
 			proxy:                httputil.NewSingleHostReverseProxy(targetURL),
 		}
 	}
-	return &result, nil
+	return result, nil
 }

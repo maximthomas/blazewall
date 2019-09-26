@@ -50,6 +50,7 @@ func (ss *SessionService) createSession(c *gin.Context) {
 	err := c.ShouldBindJSON(&session)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err})
+		return
 	}
 	newSession, createErr := ss.sr.CreateSession(session)
 	if createErr != nil {

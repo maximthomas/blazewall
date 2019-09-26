@@ -9,15 +9,13 @@ import (
 func TestNewProtectedSitesConfig(t *testing.T) {
 	configReader, err := os.Open("./test/gateway-config.yaml")
 
-	sitesConfigPtr, err := NewProtectedSitesConfigYaml(configReader)
+	sitesConfig, err := NewProtectedSitesConfigYaml(configReader)
 
 	if err != nil {
 		panic(err)
 	}
 
-	sitesConfig := *sitesConfigPtr
-
-	if sitesConfig == nil || err != nil {
+	if err != nil {
 		t.Errorf("could not get sites config %s", err)
 	}
 

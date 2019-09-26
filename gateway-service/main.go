@@ -24,20 +24,14 @@ func main() {
 
 	sessionRepo := &InMemorySessionRepository{}
 
-	var sitesConfigPtr *[]ProtectedSiteConfig
+	var sitesConfig []ProtectedSiteConfig
 	if *yamlConfigFile != "" {
 		configReader, err := os.Open(*yamlConfigFile)
 		check(err)
 
-		sitesConfigPtr, err = NewProtectedSitesConfigYaml(configReader)
+		sitesConfig, err = NewProtectedSitesConfigYaml(configReader)
 		check(err)
 	}
-
-	if sitesConfigPtr == nil {
-		log.Fatal("error reading sites config")
-	}
-
-	sitesConfig := *sitesConfigPtr
 
 	log.Printf("sites config: %#v", sitesConfig)
 
