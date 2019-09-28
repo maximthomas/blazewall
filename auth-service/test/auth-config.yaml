@@ -1,0 +1,23 @@
+realms:
+  -
+    name: users
+    authConfig:
+      -
+        type: oAuthGoogle
+        parameters:
+          clientID: cleint_id
+          clientSecret: cleint_secret
+      -
+        type: textFile
+        parameters:
+          filePath: ./test/users.txt
+  -
+    name: staff
+    authConfig:
+      -
+        type: textFile
+        parameters:
+          filePath: ./test/staff.txt
+cookieDomains:
+  - localhost
+  - auth-service
