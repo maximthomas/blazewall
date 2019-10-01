@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -63,6 +64,15 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			valid := protected.PolicyValidator.ValidatePolicy(r, sessionPtr)
 			if valid {
 				r.Header.Add("X-Forwarded-For", r.Host)
+				if sessionPtr != nil {
+					sessionJSONBytes, err := json.Marshal(*sessionPtr)
+					if err != nil {
+						log.Fatalf("error occurred %v", err)
+						panic(err)
+					}
+					r.Header.Add("X-Blazewall-Session", string(sessionJSONBytes))
+				}
+
 				protectedSiteConfig.proxy.ServeHTTP(w, r)
 			} else {
 				w.WriteHeader(http.StatusUnauthorized)

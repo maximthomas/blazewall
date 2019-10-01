@@ -20,5 +20,9 @@ services:
   #  build:
   #    context: ./session-service
   #  restart: always
-    
 
+
+  protected-service:
+    build:
+      context: ./protected-service
+    restart: always    

@@ -1,0 +1,30 @@
+realms:
+  -
+    name: users
+    redirectOnSuccess: "http://google.com"
+    authConfig:
+      -
+        type: oAuthGoogle
+        parameters:
+          clientID: cleint_id
+          clientSecret: cleint_secret
+      -
+        type: userService
+        parameters:
+          endpoint: http://user-service:8081/user-service/v1/
+          realm: users
+      -
+        type: textFile
+        parameters:
+          filePath: ./test/users.txt
+  -
+    name: staff
+    redirectOnSuccess: "http://google.com"
+    authConfig:
+      -
+        type: textFile
+        parameters:
+          filePath: ./test/staff.txt
+cookieDomains:
+  - .example.com
+  - localhost

@@ -7,7 +7,6 @@ FROM alpine
 RUN adduser -S -D -H -h /app appuser
 USER appuser
 COPY --from=builder /build/main /app/
-ADD ./templates/ /app/templates
-ADD ./configs/ /app/configs
+ADD ./test/ /app/test
 WORKDIR /app
-CMD ["./main", "-yc", "./configs/auth-config.yaml"]
+CMD ["./main"]
