@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -37,10 +38,8 @@ func getAuthConfigEntry(c *gin.Context, authConfig []AuthConfigEntry) (AuthConfi
 	return acEntry, true
 }
 
-const plainAuthType = "textFile"
-
-func processAuthConfig(c *gin.Context, authConfig []AuthConfigEntry) {
-	acEntry, ok := getAuthConfigEntry(c, authConfig)
+func processAuthConfig(c *gin.Context, realm Realm, sr SessionRepository, cookieDomains []string) {
+	acEntry, ok := getAuthConfigEntry(c, realm.AuthConfig)
 	if !ok {
 		c.AbortWithStatusJSON(500, gin.H{"error": "error getting auth config"})
 		return
@@ -51,7 +50,40 @@ func processAuthConfig(c *gin.Context, authConfig []AuthConfigEntry) {
 		c.AbortWithError(500, err)
 		return
 	}
-	ap.ProcessAuthentication(c)
+	session, ok := ap.ProcessAuthentication(c)
+	if ok {
+		session.Realm = realm.Name
+		session = sr.CreateSession(session)
+		for _, domain := range cookieDomains {
+			c.SetCookie("session", session.ID, 0, "/", domain, false, true)
+		}
+		redirect := c.Query("redirect")
+		if redirect == "" {
+			redirect = realm.RedirectOnSuccess
+		}
+		c.Redirect(http.StatusFound, redirect)
+		c.Writer.WriteHeaderNow()
+		return
+	}
+}
+
+func setupRouter(ac AuthServiceConfig, sr SessionRepository) *gin.Engine {
+	router := gin.Default()
+	router.LoadHTMLGlob("templates/*")
+	v1 := router.Group("/auth-service/v1")
+	{
+		for _, realm := range ac.Realms {
+			r := realm
+			v1.GET("/"+realm.Name, func(c *gin.Context) {
+				processAuthConfig(c, r, sr, ac.CookieDomains)
+			})
+
+			v1.POST("/"+realm.Name, func(c *gin.Context) {
+				processAuthConfig(c, r, sr, ac.CookieDomains)
+			})
+		}
+	}
+	return router
 }
 
 func main() {
@@ -66,20 +98,7 @@ func main() {
 		check(err)
 	}
 
-	router := gin.Default()
-
-	v1 := router.Group("/auth-service/v1")
-	{
-		for _, realm := range ac.Realms {
-			v1.GET("/"+realm.Name, func(c *gin.Context) {
-				processAuthConfig(c, realm.AuthConfig)
-			})
-
-			v1.POST("/"+realm.Name, func(c *gin.Context) {
-				processAuthConfig(c, realm.AuthConfig)
-			})
-		}
-	}
-
+	sr := DummySessionRepository{}
+	router := setupRouter(ac, &sr)
 	router.Run(":" + *port)
 }

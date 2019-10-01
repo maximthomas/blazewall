@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -70,14 +69,9 @@ func TestTextFileAuthProcessor(t *testing.T) {
 		c, _ := gin.CreateTestContext(recorder)
 		body := bytes.NewBufferString(`{"username":"admin","password":"pass"}`)
 		c.Request, _ = http.NewRequest("POST", "/users/?redirect=http://protected-resource:8080", body)
-		ap.ProcessAuthentication(c)
-
-		assert.Equal(t, 302, recorder.Code)
-		url, err := recorder.Result().Location()
-		assert.NoError(t, err)
-		assert.Equal(t, "http://protected-resource:8080", url.String())
-		cookies := recorder.Header()
-		fmt.Println(cookies)
+		sess, ok := ap.ProcessAuthentication(c)
+		assert.True(t, ok)
+		assert.Equal(t, "admin", sess.UserID)
 	})
 }
 

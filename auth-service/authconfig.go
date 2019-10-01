@@ -13,8 +13,9 @@ type AuthConfigEntry struct {
 }
 
 type Realm struct {
-	Name       string            `yaml:"name"`
-	AuthConfig []AuthConfigEntry `yaml:"authConfig"`
+	Name              string            `yaml:"name"`
+	RedirectOnSuccess string            `yaml:"redirectOnSuccess"`
+	AuthConfig        []AuthConfigEntry `yaml:"authConfig"`
 }
 
 type AuthServiceConfig struct {
