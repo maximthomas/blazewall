@@ -1,0 +1,24 @@
+# Use root/example as user/password credentials
+version: '3.1'
+
+services:
+  auth-service:
+    build:
+      context: ./auth-service
+    restart: always
+    ports:
+      - "8081:8080"
+
+  gateway-service:
+    build:
+      context: ./gateway-service
+    restart: always
+    ports:
+      - "8080:8080"
+
+  #session-service:
+  #  build:
+  #    context: ./session-service
+  #  restart: always
+    
+
