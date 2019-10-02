@@ -1,5 +1,12 @@
 package main
 
+import (
+	"encoding/json"
+	"io/ioutil"
+	"log"
+	"net/http"
+)
+
 //Session struct represents session object from session service
 type Session struct {
 	ID         string            `json:"id,omitempty"`
@@ -19,8 +26,8 @@ type InMemorySessionRepository struct {
 	sessions map[string]Session
 }
 
-func (i *InMemorySessionRepository) GetSession(id string) (session Session, exists bool) {
-	session, exists = i.sessions[id]
+func (sr *InMemorySessionRepository) GetSession(id string) (session Session, exists bool) {
+	session, exists = sr.sessions[id]
 	return session, exists
 }
 
@@ -29,4 +36,34 @@ func NewInMemorySessionRepository(sessions map[string]Session) *InMemorySessionR
 	return &InMemorySessionRepository{
 		sessions: sessions,
 	}
+}
+
+type RestSessionRepository struct {
+	endpoint string
+	client   http.Client
+}
+
+func (sr *RestSessionRepository) GetSession(id string) (session Session, exists bool) {
+
+	resp, err := sr.client.Get(sr.endpoint + "/" + id)
+	if err != nil {
+		log.Fatalf("error getting session: %v", err)
+		return session, exists
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatalf("error getting session: %v", err)
+		return session, exists
+	}
+
+	err = json.Unmarshal(body, &session)
+	if err != nil {
+		log.Fatalf("error unmarshalling session: %v", err)
+		return session, exists
+	}
+	exists = true
+	return session, exists
+
 }

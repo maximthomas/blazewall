@@ -8,19 +8,7 @@ import (
 
 var port = flag.String("p", "8080", "Session service port")
 
-func main() {
-
-	flag.Parse()
-
-	repo := NewInMemorySessionRepository([]Session{
-		{
-			ID:     "sess1",
-			UserID: "user1",
-			Realm:  "users",
-		},
-	})
-	ss := NewSessionService(repo)
-
+func setupRouter(ss *SessionService) *gin.Engine {
 	router := gin.Default()
 
 	v1 := router.Group("/session-service/v1")
@@ -34,6 +22,21 @@ func main() {
 		}
 
 	}
+	return router
+}
 
+func main() {
+
+	flag.Parse()
+
+	repo := NewInMemorySessionRepository([]Session{
+		{
+			ID:     "sess1",
+			UserID: "user1",
+			Realm:  "users",
+		},
+	})
+	ss := NewSessionService(repo)
+	router := setupRouter(&ss)
 	router.Run(":" + *port)
 }

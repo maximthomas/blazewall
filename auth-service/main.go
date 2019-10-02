@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"log"
 	"net/http"
 	"os"
 
@@ -10,6 +11,8 @@ import (
 
 var yamlConfigFile = flag.String("yc", "", "Yaml config file path")
 var port = flag.String("p", "8080", "Gateway service port")
+var sessionServiceEndpoint = flag.String("sess", "http://session-service:8080/session-service/v1/sessions", "Session service endpoint")
+var authSessionID = flag.String("sID", "BlazewallSession", "Session service cookie name")
 
 func check(err error) {
 	if err != nil {
@@ -47,15 +50,21 @@ func processAuthConfig(c *gin.Context, realm Realm, sr SessionRepository, cookie
 
 	ap, err := getAuthProcessor(acEntry)
 	if err != nil {
+		log.Fatalf("error getting auth processor %v for AuthConfig entry: %v", err, acEntry)
 		c.AbortWithError(500, err)
 		return
 	}
 	session, ok := ap.ProcessAuthentication(c)
 	if ok {
 		session.Realm = realm.Name
-		session = sr.CreateSession(session)
+		session, err = sr.CreateSession(session)
+		if err != nil {
+			log.Fatalf("error creating session: %v", err)
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
 		for _, domain := range cookieDomains {
-			c.SetCookie("session", session.ID, 0, "/", domain, false, true)
+			c.SetCookie(*authSessionID, session.ID, 0, "/", domain, false, true)
 		}
 		redirect := c.Query("redirect")
 		if redirect == "" {
@@ -65,6 +74,14 @@ func processAuthConfig(c *gin.Context, realm Realm, sr SessionRepository, cookie
 		c.Writer.WriteHeaderNow()
 		return
 	}
+}
+
+func processLogout(c *gin.Context, sr SessionRepository) {
+	sessionID, err := c.Cookie(*authSessionID)
+	if err != nil {
+		return
+	}
+	sr.DeleteSession(sessionID)
 }
 
 func setupRouter(ac AuthServiceConfig, sr SessionRepository) *gin.Engine {
@@ -82,6 +99,9 @@ func setupRouter(ac AuthServiceConfig, sr SessionRepository) *gin.Engine {
 				processAuthConfig(c, r, sr, ac.CookieDomains)
 			})
 		}
+		v1.Any("/logout", func(c *gin.Context) {
+			processLogout(c, sr)
+		})
 	}
 	return router
 }
@@ -98,7 +118,8 @@ func main() {
 		check(err)
 	}
 
-	sr := DummySessionRepository{}
+	//sr := DummySessionRepository{}
+	sr := RestSessionRepository{endpoint: *sessionServiceEndpoint}
 	router := setupRouter(ac, &sr)
 	router.Run(":" + *port)
 }

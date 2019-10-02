@@ -21,6 +21,7 @@ type ProtectedSiteConfig struct {
 type ProtectedPathConfig struct {
 	URLPattern      string
 	PolicyValidator PolicyValidator
+	AuthURL         string
 }
 
 func NewProtectedSitesConfigYaml(reader io.Reader) ([]ProtectedSiteConfig, error) {
@@ -33,6 +34,7 @@ func NewProtectedSitesConfigYaml(reader io.Reader) ([]ProtectedSiteConfig, error
 	type yamlProtectedPath struct {
 		URLPattern      string              `yaml:"urlPattern"`
 		PolicyValidator yamlPolicyValidator `yaml:"policyValidator"`
+		AuthURL         string              `yaml:"authUrl"`
 	}
 
 	type yamlConfig struct {
@@ -82,6 +84,7 @@ func NewProtectedSitesConfigYaml(reader io.Reader) ([]ProtectedSiteConfig, error
 			paths[pathIdx] = ProtectedPathConfig{
 				URLPattern:      pathEntry.URLPattern,
 				PolicyValidator: pv,
+				AuthURL:         pathEntry.AuthURL,
 			}
 		}
 

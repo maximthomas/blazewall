@@ -16,10 +16,10 @@ services:
     ports:
       - "8080:8080"
 
-  #session-service:
-  #  build:
-  #    context: ./session-service
-  #  restart: always
+  session-service:
+    build:
+      context: ./session-service
+    restart: always
 
 
   protected-service:

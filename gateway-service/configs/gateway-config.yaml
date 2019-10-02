@@ -1,8 +1,9 @@
 -
-  requestHost: example.com
-  targetHost: 'http://protected-resource:8080'
+  requestHost: example.com:8080
+  targetHost: 'http://protected-service:8080'
   pathsConfig:
     -
       policyValidator:
         type: authenticated
       urlPattern: /user
+      authUrl: http://auth.example.com:8081/auth-service/v1/users

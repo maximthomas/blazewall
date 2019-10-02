@@ -9,6 +9,8 @@ import (
 
 var yamlConfigFile = flag.String("yc", "", "Yaml config file path")
 var port = flag.String("p", "8080", "Gateway service port")
+var sessionServiceEndpoint = flag.String("sess", "http://session-service:8080/session-service/v1/sessions", "Session service endpoint")
+var authSessionID = flag.String("sID", "BlazewallSession", "Session service cookie name")
 
 func check(err error) {
 	if err != nil {
@@ -22,7 +24,7 @@ func main() {
 
 	flag.Parse()
 
-	sessionRepo := &InMemorySessionRepository{}
+	sr := RestSessionRepository{endpoint: *sessionServiceEndpoint}
 
 	var sitesConfig []ProtectedSiteConfig
 	if *yamlConfigFile != "" {
@@ -35,7 +37,7 @@ func main() {
 
 	log.Printf("sites config: %#v", sitesConfig)
 
-	gateway := NewGateway(sitesConfig, sessionRepo)
+	gateway := NewGateway(sitesConfig, &sr)
 
 	http.ListenAndServe(":"+*port, gateway)
 

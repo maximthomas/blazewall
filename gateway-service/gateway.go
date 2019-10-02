@@ -10,8 +10,6 @@ import (
 	"path/filepath"
 )
 
-const sessionKey = "blazewall-session"
-
 //Gateway main structure, holds protected sites config and session repository
 type Gateway struct {
 	ProtectedSitesConfig map[string]ProtectedSiteConfig
@@ -54,11 +52,13 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if match {
-			sessionID, _ := g.getSessionID(r)
-			session, ok := g.SessionRepository.GetSession(sessionID)
+			sessionID, err := g.getSessionID(r)
 			var sessionPtr *Session
-			if ok {
-				sessionPtr = &session
+			if err == nil {
+				session, ok := g.SessionRepository.GetSession(sessionID)
+				if ok {
+					sessionPtr = &session
+				}
 			}
 
 			valid := protected.PolicyValidator.ValidatePolicy(r, sessionPtr)
@@ -75,8 +75,7 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 				protectedSiteConfig.proxy.ServeHTTP(w, r)
 			} else {
-				w.WriteHeader(http.StatusUnauthorized)
-				fmt.Fprintf(w, "Unauthorized")
+				http.Redirect(w, r, protected.AuthURL, http.StatusFound)
 			}
 			return
 		}
@@ -88,13 +87,13 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 var ErrNoSessionID = errors.New("no session id presented in the request")
 
 func (g *Gateway) getSessionID(r *http.Request) (string, error) {
-	sessionCookie, err := r.Cookie(sessionKey)
+	sessionCookie, err := r.Cookie(*authSessionID)
 	if err == nil {
 		return sessionCookie.Value, nil
 	}
 
-	if len(r.Header[sessionKey]) > 0 {
-		return r.Header[sessionKey][0], nil
+	if len(r.Header[*authSessionID]) > 0 {
+		return r.Header[*authSessionID][0], nil
 	}
 	return "", ErrNoSessionID
 }

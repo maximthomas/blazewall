@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"net/http/httputil"
 	"net/url"
+	"strings"
 	"testing"
 )
 
@@ -29,10 +30,12 @@ func TestPassThrough(t *testing.T) {
 				{
 					URLPattern:      "/",
 					PolicyValidator: AllowedPolicyValidator{},
+					AuthURL:         "http://auth-service",
 				},
 				{
 					URLPattern:      "/protected",
 					PolicyValidator: DeniedPolicyValidator{},
+					AuthURL:         "http://auth-service",
 				},
 			},
 			proxy: httputil.NewSingleHostReverseProxy(protectedURL),
@@ -55,8 +58,8 @@ func TestPassThrough(t *testing.T) {
 
 		gateway.ServeHTTP(response, allowedRequest)
 
-		assertStatus(t, response.Code, http.StatusUnauthorized)
-		assertBody(t, response.Body.String(), "Unauthorized")
+		assertStatus(t, response.Code, http.StatusFound)
+		assertBody(t, response.Body.String(), `<a href="http://auth-service">Found</a>.`)
 	})
 }
 
@@ -102,6 +105,7 @@ func assertStatus(t *testing.T, got, want int) {
 
 func assertBody(t *testing.T, got, want string) {
 	t.Helper()
+	got = strings.TrimSpace(got)
 	if got != want {
 		t.Errorf("did not get correct body, got %s, want %s", got, want)
 	}

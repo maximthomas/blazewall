@@ -7,6 +7,6 @@ FROM alpine
 RUN adduser -S -D -H -h /app appuser
 USER appuser
 COPY --from=builder /build/main /app/
-ADD ./test/ /app/test
+ADD ./template/ /app/template
 WORKDIR /app
 CMD ["./main"]

@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/csv"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -22,7 +23,6 @@ const userServiceAuthType = "userService"
 
 func getAuthProcessor(authConfigEntry AuthConfigEntry) (AuthProcessor, error) {
 	var ap AuthProcessor
-
 	if authConfigEntry.Type == plainAuthType {
 		ap, err := NewTextFileAuthProcessor(authConfigEntry.Parameters)
 		return ap, err
@@ -32,7 +32,7 @@ func getAuthProcessor(authConfigEntry AuthConfigEntry) (AuthProcessor, error) {
 		return ap, err
 	}
 
-	return ap, nil
+	return ap, errors.New("udefuned auth processor")
 }
 
 func NewTextFileAuthProcessor(parameters map[string]*interface{}) (TextFileAuthProcessor, error) {

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -10,6 +12,7 @@ type SessionService struct {
 
 func (ss *SessionService) getSessionByID(c *gin.Context) {
 	id := c.Param("id")
+	log.Printf("getting session by id: %s", id)
 	session, ok := ss.sr.GetSessionByID(id)
 	if !ok {
 		c.JSON(404, gin.H{"error": "Session not found"})
@@ -20,7 +23,8 @@ func (ss *SessionService) getSessionByID(c *gin.Context) {
 
 func (ss *SessionService) findSessions(c *gin.Context) {
 	realm := c.Query("realm")
-	userID := c.Query("userId")
+	userID := c.Query("userID")
+	log.Printf("findins sessions by realm: %s and userID: %s", realm, userID)
 
 	if realm == "" || userID == "" {
 		c.JSON(400, gin.H{"error": "Realm and userId not set"})
@@ -37,6 +41,7 @@ func (ss *SessionService) findSessions(c *gin.Context) {
 
 func (ss *SessionService) deleteSession(c *gin.Context) {
 	id := c.Param("id")
+	log.Printf("deleting session by id: %s", id)
 	err := ss.sr.DeleteSession(id)
 	if err != nil {
 		c.JSON(404, gin.H{"error": "Session not found"})
@@ -47,6 +52,7 @@ func (ss *SessionService) deleteSession(c *gin.Context) {
 
 func (ss *SessionService) createSession(c *gin.Context) {
 	session := Session{}
+	log.Printf("creating session")
 	err := c.ShouldBindJSON(&session)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err})

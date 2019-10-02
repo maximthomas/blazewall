@@ -10,9 +10,9 @@ func main() {
 	userTmpl := template.Must(template.ParseFiles("./template/user.html"))
 	http.HandleFunc("/user", func(w http.ResponseWriter, r *http.Request) {
 		var username string
-		_, exists := r.Header["username"]
+		_, exists := r.Header["X-Blazewall-Session"]
 		if exists {
-			username = r.Header["username"][0]
+			username = r.Header["X-Blazewall-Session"][0]
 		}
 		data := struct {
 			Username string

@@ -10,10 +10,12 @@
             - users
         type: realms
       urlPattern: /
+      authUrl: http://auth.example.com:8081/auth-service/v1/users
     -
       policyValidator:
         type: allowed
       urlPattern: /allowed
+      authUrl: http://auth.example.com:8081/auth-service/v1/users
 -
   requestHost: gateway-service2
   targetHost: 'http://protected-resource2:8080'

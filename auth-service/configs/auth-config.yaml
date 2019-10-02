@@ -1,13 +1,8 @@
 realms:
   -
     name: users
-    redirectOnSuccess: "http://google.com"
+    redirectOnSuccess: "http://example.com:8080/user"
     authConfig:
-      -
-        type: oAuthGoogle
-        parameters:
-          clientID: cleint_id
-          clientSecret: cleint_secret
       -
         type: userService
         parameters:
@@ -17,9 +12,14 @@ realms:
         type: textFile
         parameters:
           filePath: ./test/users.txt
+      -
+        type: oAuthGoogle
+        parameters:
+          clientID: cleint_id
+          clientSecret: cleint_secret
   -
     name: staff
-    redirectOnSuccess: "http://google.com"
+    redirectOnSuccess: "http://example.com:8080/user"
     authConfig:
       -
         type: textFile
