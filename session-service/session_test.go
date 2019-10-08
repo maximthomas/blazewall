@@ -37,7 +37,7 @@ func TestInMemorySessionRepository(t *testing.T) {
 	}
 
 	//Find by userID
-	gotSessions := repo.FindByUserId("users", "user2")
+	gotSessions := repo.Find("users", "user2")
 
 	if len(gotSessions) != 1 {
 		t.Fatalf("Shood find at least 1 session")

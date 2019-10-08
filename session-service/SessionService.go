@@ -31,7 +31,7 @@ func (ss *SessionService) findSessions(c *gin.Context) {
 		return
 	}
 
-	sessions := ss.sr.FindByUserId(realm, userID)
+	sessions := ss.sr.Find(realm, userID)
 	if len(sessions) == 0 {
 		c.JSON(404, gin.H{"error": "Sessions not found"})
 	} else {

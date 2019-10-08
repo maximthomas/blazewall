@@ -13,6 +13,8 @@ type Session struct {
 
 	Realm string `json:"realm,omitempty"`
 
+	Expired int64 `json:"expired,omitempty"`
+
 	Properties map[string]string `json:"properties,omitempty"`
 }
 
@@ -20,7 +22,7 @@ type SessionRepository interface {
 	GetSessionByID(id string) (Session, bool)
 	DeleteSession(id string) error
 	CreateSession(session Session) (Session, error)
-	FindByUserId(realm, userID string) []Session
+	Find(realm, userID string) []Session
 }
 
 type InMemorySessionRepository []Session
@@ -61,7 +63,7 @@ func (repo *InMemorySessionRepository) CreateSession(session Session) (Session, 
 	return session, nil
 }
 
-func (repo *InMemorySessionRepository) FindByUserId(realm, userID string) []Session {
+func (repo *InMemorySessionRepository) Find(realm, userID string) []Session {
 	var sessions []Session
 	for _, el := range *repo {
 		if el.UserID == userID && el.Realm == realm {

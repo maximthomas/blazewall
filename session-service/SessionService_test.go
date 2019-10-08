@@ -74,7 +74,7 @@ func TestSessionsFind(t *testing.T) {
 	t.Run("try to execute valid request", func(t *testing.T) {
 		recorder := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(recorder)
-		c.Request, _ = http.NewRequest("GET", "/?userId=user1&realm=users", nil)
+		c.Request, _ = http.NewRequest("GET", "/?userID=user1&realm=users", nil)
 		ss.findSessions(c)
 		assert.Equal(t, recorder.Result().StatusCode, 200)
 
@@ -88,7 +88,7 @@ func TestSessionsFind(t *testing.T) {
 	t.Run("try to search not exiting users sessions", func(t *testing.T) {
 		recorder := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(recorder)
-		c.Request, _ = http.NewRequest("GET", "/?userId=bad_user&realm=users", nil)
+		c.Request, _ = http.NewRequest("GET", "/?userID=bad_user&realm=users", nil)
 		ss.findSessions(c)
 		assert.Equal(t, recorder.Result().StatusCode, 404)
 	})
