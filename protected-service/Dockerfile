@@ -8,5 +8,6 @@ RUN adduser -S -D -H -h /app appuser
 USER appuser
 COPY --from=builder /build/main /app/
 ADD ./template/ /app/template
+ADD ./static/ /app/static
 WORKDIR /app
 CMD ["./main"]

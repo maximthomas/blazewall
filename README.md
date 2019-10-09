@@ -49,3 +49,27 @@ and released under Apache 2.0 license.
 
 ![Authentication process](docs/img/access-protected-resource.png)
 
+
+## Quick Start
+
+Quick start with docker-compose
+
+Add extry to file `/etc/hosts` in Linux or Mac or `c:\Windows\System32\Drivers\etc\hosts`
+```
+127.0.0.1 example.com auth.example.com
+```
+
+Start all services locally with docker-compose
+```bash
+$ docker-compose up --build
+```
+After all services started go to `http://example.com:8080/`, you'll see page avialable to all users
+Click on the `Try to Authenticate` button. You will be redirected to the page `http://example.com:8080/user` protected by the `gateway-servce`
+
+`gateway-service` checks if user is authenticated and if he is not, redirects to the `auth-service` `http://auth.example.com:8081/auth-service/v1/users`
+
+Enter login `admin` and password `password` to authenticate.
+
+After authentication, you will be redirected back to the protected resource `http://example.com:8080/user`
+
+
