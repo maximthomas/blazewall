@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var yamlConfigFile = flag.String("yc", "", "Yaml config file path")
+var yamlConfigFile = flag.String("yc", "./test/auth-config.yaml", "Yaml config file path")
 var port = flag.String("p", "8080", "Gateway service port")
 var sessionServiceEndpoint = flag.String("sess", "http://session-service:8080/session-service/v1/sessions", "Session service endpoint")
 var authSessionID = flag.String("sID", "BlazewallSession", "Session service cookie name")
@@ -87,6 +87,7 @@ func processLogout(c *gin.Context, sr SessionRepository) {
 func setupRouter(ac AuthServiceConfig, sr SessionRepository) *gin.Engine {
 	router := gin.Default()
 	router.LoadHTMLGlob("templates/*")
+	router.Static("/static", "static")
 	v1 := router.Group("/auth-service/v1")
 	{
 		for _, realm := range ac.Realms {
@@ -99,7 +100,7 @@ func setupRouter(ac AuthServiceConfig, sr SessionRepository) *gin.Engine {
 				processAuthConfig(c, r, sr, ac.CookieDomains)
 			})
 		}
-		v1.Any("/logout", func(c *gin.Context) {
+		v1.GET("/logout", func(c *gin.Context) {
 			processLogout(c, sr)
 		})
 	}

@@ -4,11 +4,6 @@ realms:
     redirectOnSuccess: "http://google.com"
     authConfig:
       -
-        type: oAuthGoogle
-        parameters:
-          clientID: cleint_id
-          clientSecret: cleint_secret
-      -
         type: userService
         parameters:
           endpoint: http://user-service:8081/user-service/v1/
@@ -17,6 +12,11 @@ realms:
         type: textFile
         parameters:
           filePath: ./test/users.txt
+      -
+        type: oAuthGoogle
+        parameters:
+          clientID: cleint_id
+          clientSecret: cleint_secret
   -
     name: staff
     redirectOnSuccess: "http://google.com"
