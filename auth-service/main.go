@@ -1,11 +1,17 @@
 package main
 
 import (
+	"crypto/sha1"
+	"encoding/base64"
 	"errors"
 	"flag"
+	"io"
 	"log"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -112,12 +118,48 @@ func processLogout(c *gin.Context, sr SessionRepository) {
 	sr.DeleteSession(sessionID)
 }
 
+const secret = "csrf_secret"
+
+func CSRFMiddleware() gin.HandlerFunc {
+
+	getToken := func(tsStr string) string {
+		h := sha1.New()
+		io.WriteString(h, tsStr+"-"+secret)
+		token := base64.URLEncoding.EncodeToString(h.Sum(nil)) + "|" + tsStr
+		return token
+	}
+
+	return func(c *gin.Context) {
+		ts := time.Now().UnixNano() / int64(time.Millisecond)
+		tsStr := strconv.FormatInt(ts, 10)
+		token := getToken(tsStr)
+		c.Set("csrfToken", token)
+		if c.Request.Method == "POST" {
+			token := c.Request.FormValue("csrfToken")
+			if token == "" {
+				panic("token not present")
+			}
+			tokenParts := strings.Split(token, "|")
+			if len(tokenParts) != 2 {
+				panic("bad token")
+			}
+			tsStr := tokenParts[1]
+			calcToken := getToken(tsStr)
+			if token != calcToken {
+				panic("bad token!")
+			}
+		}
+		c.Next()
+	}
+}
+
 func setupRouter(ac AuthServiceConfig, sr SessionRepository) *gin.Engine {
 	router := gin.Default()
 	router.LoadHTMLGlob("templates/*")
 	router.Static("/static", "static")
 	v1 := router.Group("/auth-service/v1")
 	{
+		v1.Use(CSRFMiddleware())
 		v1.GET("/login", func(c *gin.Context) {
 			processAuthConfig(c, sr, ac)
 		})

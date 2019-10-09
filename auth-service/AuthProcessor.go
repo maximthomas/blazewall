@@ -126,12 +126,24 @@ type UserServiceAuthProcessor struct {
 	realmName string
 }
 
+func appendCSRF(c *gin.Context, params gin.H) gin.H {
+	csrf, ok := c.Get("csrfToken")
+	if !ok {
+		panic("token not present")
+	}
+	if params == nil {
+		params = gin.H{}
+	}
+	params["csrfToken"] = csrf
+	return params
+}
+
 func (ap UserServiceAuthProcessor) ProcessAuthentication(c *gin.Context) (sess Session, ok bool) {
 	ok = false
 	switch c.Request.Method {
 	case "GET":
 		{
-			c.HTML(200, "username-password.html", nil)
+			c.HTML(200, "username-password.html", appendCSRF(c, nil))
 			return sess, ok
 		}
 	case "POST":
@@ -139,20 +151,20 @@ func (ap UserServiceAuthProcessor) ProcessAuthentication(c *gin.Context) (sess S
 			var recievedCredential Credential
 			err := c.ShouldBind(&recievedCredential)
 			if err != nil {
-				c.HTML(http.StatusUnauthorized, "username-password.html", gin.H{"error": "Invalid username or password"})
+				c.HTML(http.StatusUnauthorized, "username-password.html", appendCSRF(c, gin.H{"error": "Invalid username or password"}))
 				return sess, ok
 			}
 
 			//check user exists
 			user, exists := ap.us.GetUser(ap.realmName, recievedCredential.Username)
 			if !exists {
-				c.HTML(http.StatusUnauthorized, "username-password.html", gin.H{"error": "Invalid username or password"})
+				c.HTML(http.StatusUnauthorized, "username-password.html", appendCSRF(c, gin.H{"error": "Invalid username or password"}))
 				return sess, ok
 			}
 
 			valid := ap.us.ValidatePassword(ap.realmName, user.ID, recievedCredential.Password)
 			if !valid {
-				c.HTML(http.StatusUnauthorized, "username-password.html", gin.H{"error": "Invalid username or password"})
+				c.HTML(http.StatusUnauthorized, "username-password.html", appendCSRF(c, gin.H{"error": "Invalid username or password"}))
 				return sess, ok
 			}
 
