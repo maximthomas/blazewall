@@ -15,7 +15,7 @@ func TestReadConfigFile(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, len(ac.Realms), 2)
 
-	clientIDInt, ok := ac.Realms[0].AuthConfig[0].Parameters["clientID"]
+	clientIDInt, ok := ac.Realms[0].AuthConfig[2].Parameters["clientID"]
 	assert.True(t, ok)
 	clientID := cast.ToString(clientIDInt)
 	assert.NotEmpty(t, clientID)
