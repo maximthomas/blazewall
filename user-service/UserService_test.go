@@ -233,7 +233,7 @@ func getInMemoryUserRepository() UserRepository {
 	return &InMemoryUserRepository{[]RepoUser{
 		{
 			User:     existingUser,
-			password: "password1",
+			Password: "password1",
 		},
 	}}
 }

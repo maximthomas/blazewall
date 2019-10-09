@@ -14,8 +14,8 @@ type UserRepository interface {
 }
 
 type RepoUser struct {
-	User
-	password string
+	User     `bson:",inline"`
+	Password string `json:"password,omitempty"`
 }
 
 type InMemoryUserRepository struct {
@@ -94,7 +94,7 @@ func (ur *InMemoryUserRepository) SetPassword(realm, userID, password string) er
 
 	for i, ru := range ur.repoUsers {
 		if ru.ID == userID && ru.Realm == realm {
-			ur.repoUsers[i].password = password
+			ur.repoUsers[i].Password = password
 			return nil
 		}
 	}
@@ -105,7 +105,7 @@ func (ur *InMemoryUserRepository) ValidatePassword(realm, userID, password strin
 
 	for _, ru := range ur.repoUsers {
 		if ru.ID == userID && ru.Realm == realm {
-			return ru.password == password, nil
+			return ru.Password == password, nil
 		}
 	}
 	return false, userNotFoudError

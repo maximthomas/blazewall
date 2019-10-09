@@ -36,7 +36,7 @@ func main() {
 				ID:    "user1",
 				Realm: "users",
 			},
-			password: "pass",
+			Password: "pass",
 		},
 	}}
 	ss := UserService{
