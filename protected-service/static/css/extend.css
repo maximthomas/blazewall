@@ -1,0 +1,17 @@
+header.masthead {
+    padding-top: 8rem;
+    padding-bottom: 8rem;
+    background: linear-gradient(to bottom, #6e1dc7f7 0%, #688196cc 100%) no-repeat scroll center;
+    /*background: linear-gradient(to bottom,rgba(192, 0, 255, 0.8) 0,rgba(24, 39, 152, 0.8) 100%);*/
+    background-size: cover;
+}
+
+.bg-primary {
+    background-color: #6e1dc7 !important;
+}
+
+footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}

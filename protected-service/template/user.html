@@ -1,9 +1,32 @@
 <!DOCTYPE html>
 <html>
-    <head>
+<head >
+{{template "inc_resources.html"}}
+</head>
+<body id="page-top">
 
-    </head>
-    <body>
-        <p>Welcome, {{.Username}}</p> 
-    </body>
+{{template "inc_navbar.html"}}
+
+<!-- Masthead -->
+<section class="page-section bg-primary" id="about">
+    <div class="container">
+        <div class="row justify-content-center h-100">
+            <div class="col-lg-8 text-center text-white" >
+                <h1>Secure zone!</h1>
+                {{ if .Username }}
+                    <div class="content">
+                        <p>{{ .Username }}</p>    
+                    </div>
+                {{ else }}
+                    <div class="content">
+                        <p>No auth info available, should be behind gateway-service!</p>
+                    </div>
+                {{ end }}
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Footer -->
+{{template "inc_footer.html"}}
+</body>
 </html>

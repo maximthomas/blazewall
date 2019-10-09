@@ -7,7 +7,10 @@ import (
 
 func main() {
 
-	userTmpl := template.Must(template.ParseFiles("./template/user.html"))
+	fs := http.FileServer(http.Dir("static"))
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
+
+	t := template.Must(template.ParseGlob("./template/*.*"))
 	http.HandleFunc("/user", func(w http.ResponseWriter, r *http.Request) {
 		var username string
 		_, exists := r.Header["X-Blazewall-Session"]
@@ -19,11 +22,11 @@ func main() {
 		}{
 			Username: username,
 		}
-		userTmpl.Execute(w, data)
+		t.ExecuteTemplate(w, "user.html", data)
 	})
-	indexTmlp := template.Must(template.ParseFiles("./template/index.html"))
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		indexTmlp.Execute(w, nil)
+		t.ExecuteTemplate(w, "index.html", nil)
 	})
 	http.ListenAndServe(":8080", nil)
 }
