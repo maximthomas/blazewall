@@ -35,7 +35,7 @@ func TestGetUser(t *testing.T) {
 
 	t.Run("test getting not existing user", func(t *testing.T) {
 		recorder := httptest.NewRecorder()
-		request := httptest.NewRequest("GET", serviceURL+"/staff/bad", nil)
+		request := httptest.NewRequest("GET", serviceURL+"/users/bad", nil)
 		router.ServeHTTP(recorder, request)
 		assert.Equal(t, 404, recorder.Result().StatusCode)
 		assert.Equal(t, `{"error":"User not found"}`, recorder.Body.String())
@@ -82,8 +82,8 @@ func TestCreateUser(t *testing.T) {
 		body := bytes.NewBufferString(bodyStr)
 		request := httptest.NewRequest("POST", serviceURL, body)
 		router.ServeHTTP(recorder, request)
-		assert.Equal(t, 400, recorder.Result().StatusCode)
-		assert.Equal(t, `{"error":"Realm does not exists"}`, recorder.Body.String())
+		assert.Equal(t, 404, recorder.Result().StatusCode)
+		assert.Equal(t, `{"error":"Realm does not exist"}`, recorder.Body.String())
 	})
 
 }
@@ -225,7 +225,9 @@ func getRouter() *gin.Engine {
 
 func getUserService() UserService {
 	return UserService{
-		getInMemoryUserRepository(),
+		uc: UserServiceConfig{
+			RealmRepos: map[string]UserRepository{"users": getInMemoryUserRepository()},
+		},
 	}
 }
 

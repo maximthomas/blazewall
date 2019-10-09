@@ -27,7 +27,7 @@ type ValidatePasswordResult struct {
 }
 
 type UserService struct {
-	ur UserRepository
+	uc UserServiceConfig
 }
 
 func getGinErrorJSON(err error) interface{} {
@@ -40,7 +40,13 @@ func getGinErrorJSON(err error) interface{} {
 func (us *UserService) GetUser(c *gin.Context) {
 	realm := c.Param("realm")
 	userID := c.Param("id")
-	user, err := us.ur.GetUser(realm, userID)
+	ur, ok := us.uc.RealmRepos[realm]
+	if !ok {
+		log.Printf("realm: %v does not exst", realm)
+		c.AbortWithStatusJSON(http.StatusNotFound, getGinErrorJSON(errors.New("Realm does not exist")))
+		return
+	}
+	user, err := ur.GetUser(realm, userID)
 	if err != nil {
 		log.Printf("error getting user: %v", err)
 		c.AbortWithStatusJSON(http.StatusNotFound, getGinErrorJSON(err))
@@ -58,7 +64,14 @@ func (us *UserService) CreateUser(c *gin.Context) {
 		return
 	}
 
-	user, err = us.ur.CreateUser(user)
+	ur, ok := us.uc.RealmRepos[user.Realm]
+	if !ok {
+		log.Printf("realm: %v does not exst", user.Realm)
+		c.AbortWithStatusJSON(http.StatusNotFound, getGinErrorJSON(errors.New("Realm does not exist")))
+		return
+	}
+
+	user, err = ur.CreateUser(user)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, getGinErrorJSON(err))
 		return
@@ -82,7 +95,14 @@ func (us *UserService) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	updatedUser, err := us.ur.UpdateUser(user)
+	ur, ok := us.uc.RealmRepos[realm]
+	if !ok {
+		log.Printf("realm: %v does not exst", realm)
+		c.AbortWithStatusJSON(http.StatusNotFound, getGinErrorJSON(errors.New("Realm does not exist")))
+		return
+	}
+
+	updatedUser, err := ur.UpdateUser(user)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, getGinErrorJSON(err))
 		return
@@ -94,13 +114,20 @@ func (us *UserService) DeleteUser(c *gin.Context) {
 	realm := c.Param("realm")
 	userID := c.Param("id")
 
-	_, err := us.ur.GetUser(realm, userID)
+	ur, ok := us.uc.RealmRepos[realm]
+	if !ok {
+		log.Printf("realm: %v does not exst", realm)
+		c.AbortWithStatusJSON(http.StatusNotFound, getGinErrorJSON(errors.New("Realm does not exist")))
+		return
+	}
+
+	_, err := ur.GetUser(realm, userID)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusNotFound, getGinErrorJSON(err))
 		return
 	}
-	err = us.ur.DeleteUser(realm, userID)
+	err = ur.DeleteUser(realm, userID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, getGinErrorJSON(err))
 		return
@@ -111,7 +138,15 @@ func (us *UserService) DeleteUser(c *gin.Context) {
 func (us *UserService) SetPassword(c *gin.Context) {
 	realm := c.Param("realm")
 	userID := c.Param("id")
-	_, err := us.ur.GetUser(realm, userID)
+
+	ur, ok := us.uc.RealmRepos[realm]
+	if !ok {
+		log.Printf("realm: %v does not exst", realm)
+		c.AbortWithStatusJSON(http.StatusNotFound, getGinErrorJSON(errors.New("Realm does not exist")))
+		return
+	}
+
+	_, err := ur.GetUser(realm, userID)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusNotFound, getGinErrorJSON(err))
@@ -125,7 +160,7 @@ func (us *UserService) SetPassword(c *gin.Context) {
 		return
 	}
 
-	err = us.ur.SetPassword(realm, userID, pass.Password)
+	err = ur.SetPassword(realm, userID, pass.Password)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, getGinErrorJSON(err))
@@ -138,7 +173,15 @@ func (us *UserService) SetPassword(c *gin.Context) {
 func (us *UserService) ValidatePassword(c *gin.Context) {
 	realm := c.Param("realm")
 	userID := c.Param("id")
-	_, err := us.ur.GetUser(realm, userID)
+
+	ur, ok := us.uc.RealmRepos[realm]
+	if !ok {
+		log.Printf("realm: %v does not exst", realm)
+		c.AbortWithStatusJSON(http.StatusNotFound, getGinErrorJSON(errors.New("Realm does not exist")))
+		return
+	}
+
+	_, err := ur.GetUser(realm, userID)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusNotFound, getGinErrorJSON(err))
@@ -152,7 +195,7 @@ func (us *UserService) ValidatePassword(c *gin.Context) {
 		return
 	}
 
-	passwordRes, err := us.ur.ValidatePassword(realm, userID, pass.Password)
+	passwordRes, err := ur.ValidatePassword(realm, userID, pass.Password)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusNotFound, getGinErrorJSON(err))

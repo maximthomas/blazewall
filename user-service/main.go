@@ -39,8 +39,15 @@ func main() {
 			Password: "pass",
 		},
 	}}
+	repos := make(map[string]UserRepository)
+	repos["users"] = &repo
+
+	uc := UserServiceConfig{
+		RealmRepos: repos,
+	}
+
 	ss := UserService{
-		ur: &repo,
+		uc: uc,
 	}
 	router := setupRouter(&ss)
 	router.Run(":" + *port)
