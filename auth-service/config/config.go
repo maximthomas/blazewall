@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"fmt"
@@ -19,18 +19,26 @@ type Realm struct {
 }
 
 type AuthServiceConfig struct {
-	Realms        []Realm  `yaml:"realms"`
-	CookieDomains []string `yaml:"cookieDomains"`
+	Realms        []Realm   `yaml:"realms"`
+	CookieDomains []string  `yaml:"cookieDomains"`
+	SessionID     string    `yaml:"sessionID"`
+	Endpoints     Endpoints `yaml:"endpoints"`
 }
 
-func NewAuthServiceConfigYaml(reader io.Reader) (AuthServiceConfig, error) {
+type Endpoints struct {
+	SessionService string `yaml:"sessionService"`
+}
 
-	var config AuthServiceConfig
-	err := yaml.NewDecoder(reader).Decode(&config)
+var ac AuthServiceConfig
+
+func Init(reader io.Reader) {
+	err := yaml.NewDecoder(reader).Decode(&ac)
 	if err != nil {
 		fmt.Println(err)
-		return config, err
+		panic(err)
 	}
+}
 
-	return config, nil
+func GetConfig() AuthServiceConfig {
+	return ac
 }

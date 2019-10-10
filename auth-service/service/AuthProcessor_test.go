@@ -1,4 +1,4 @@
-package main
+package service
 
 import (
 	"bytes"
@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTextFileAuthProcessor(t *testing.T) {
+func TestTextFileAuth(t *testing.T) {
 	ap := TextFileAuthProcessor{
 		credentials: []Credential{
 			{
@@ -77,7 +77,7 @@ func TestTextFileAuthProcessor(t *testing.T) {
 
 func TestNewTextFileAuthProcessor(t *testing.T) {
 	var filePath interface{}
-	filePath = "./test/users.txt"
+	filePath = "../test/users.txt"
 	params := map[string]*interface{}{
 		"filePath": &filePath,
 	}
