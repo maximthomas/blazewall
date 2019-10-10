@@ -1,33 +1,31 @@
-package main
+package controllers
 
 import (
 	"errors"
 	"log"
 	"net/http"
 
+	"github.com/maximthomas/blazewall/user-service/config"
+
+	"github.com/maximthomas/blazewall/user-service/models"
+
 	"github.com/gin-gonic/gin"
 )
 
-type User struct {
-	Realm string `json:"realm,omitempty"`
-
-	ID string `json:"id,omitempty"`
-
-	Roles []string `json:"roles,omitempty"`
-
-	Properties map[string]string `json:"properties,omitempty"`
+func GetUserController() UserController {
+	return UserController{
+		uc: config.GetUserServiceConfig(),
+	}
 }
 
-type Password struct {
-	Password string `json:"password,omitempty"`
+func GetUserControllerByUserServiceConfig(us config.UserServiceConfig) UserController {
+	return UserController{
+		uc: us,
+	}
 }
 
-type ValidatePasswordResult struct {
-	Valid bool `json:"valid,omitempty"`
-}
-
-type UserService struct {
-	uc UserServiceConfig
+type UserController struct {
+	uc config.UserServiceConfig
 }
 
 func getGinErrorJSON(err error) interface{} {
@@ -37,7 +35,7 @@ func getGinErrorJSON(err error) interface{} {
 	return ginErr.JSON()
 }
 
-func (us *UserService) GetUser(c *gin.Context) {
+func (us *UserController) GetUser(c *gin.Context) {
 	realm := c.Param("realm")
 	userID := c.Param("id")
 	ur, ok := us.uc.RealmRepos[realm]
@@ -55,8 +53,8 @@ func (us *UserService) GetUser(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
-func (us *UserService) CreateUser(c *gin.Context) {
-	var user User
+func (us *UserController) CreateUser(c *gin.Context) {
+	var user models.User
 	log.Printf("creating user")
 	err := c.ShouldBindJSON(&user)
 	if err != nil {
@@ -79,8 +77,8 @@ func (us *UserService) CreateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
-func (us *UserService) UpdateUser(c *gin.Context) {
-	var user User
+func (us *UserController) UpdateUser(c *gin.Context) {
+	var user models.User
 	log.Printf("creating user")
 	err := c.ShouldBindJSON(&user)
 	if err != nil {
@@ -110,7 +108,7 @@ func (us *UserService) UpdateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, updatedUser)
 }
 
-func (us *UserService) DeleteUser(c *gin.Context) {
+func (us *UserController) DeleteUser(c *gin.Context) {
 	realm := c.Param("realm")
 	userID := c.Param("id")
 
@@ -135,7 +133,7 @@ func (us *UserService) DeleteUser(c *gin.Context) {
 	c.JSON(http.StatusAccepted, nil)
 }
 
-func (us *UserService) SetPassword(c *gin.Context) {
+func (us *UserController) SetPassword(c *gin.Context) {
 	realm := c.Param("realm")
 	userID := c.Param("id")
 
@@ -153,7 +151,7 @@ func (us *UserService) SetPassword(c *gin.Context) {
 		return
 	}
 
-	var pass Password
+	var pass models.Password
 	err = c.ShouldBindJSON(&pass)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusNotFound, getGinErrorJSON(err))
@@ -170,7 +168,7 @@ func (us *UserService) SetPassword(c *gin.Context) {
 	c.JSON(http.StatusAccepted, nil)
 }
 
-func (us *UserService) ValidatePassword(c *gin.Context) {
+func (us *UserController) ValidatePassword(c *gin.Context) {
 	realm := c.Param("realm")
 	userID := c.Param("id")
 
@@ -188,7 +186,7 @@ func (us *UserService) ValidatePassword(c *gin.Context) {
 		return
 	}
 
-	var pass Password
+	var pass models.Password
 	err = c.ShouldBindJSON(&pass)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusNotFound, getGinErrorJSON(err))
@@ -202,7 +200,7 @@ func (us *UserService) ValidatePassword(c *gin.Context) {
 		return
 	}
 
-	valPassrodRes := ValidatePasswordResult{passwordRes}
+	valPassrodRes := models.ValidatePasswordResult{passwordRes}
 
 	c.JSON(http.StatusOK, valPassrodRes)
 }

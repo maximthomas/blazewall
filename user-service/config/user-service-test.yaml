@@ -1,0 +1,4 @@
+realms:
+  -
+    realm: users
+    type: inmemory

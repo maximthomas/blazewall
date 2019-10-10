@@ -1,31 +1,24 @@
-package main
+package repo
 
 import (
 	"errors"
+
+	"github.com/maximthomas/blazewall/user-service/models"
 )
 
-type UserRepository interface {
-	GetUser(realm, userID string) (User, error)
-	CreateUser(user User) (User, error)
-	UpdateUser(user User) (User, error)
-	DeleteUser(realm, userID string) error
-	SetPassword(realm, userID, password string) error
-	ValidatePassword(realm, userID, password string) (bool, error)
-}
-
-type RepoUser struct {
-	User     `bson:",inline"`
-	Password string `json:"password,omitempty"`
+type inMemoryRepoUser struct {
+	models.User
+	Password string
 }
 
 type InMemoryUserRepository struct {
-	repoUsers []RepoUser
+	repoUsers []inMemoryRepoUser
 }
 
 var userNotFoudError = errors.New("User not found")
 
-func (ur *InMemoryUserRepository) GetUser(realm, id string) (User, error) {
-	var user User
+func (ur *InMemoryUserRepository) GetUser(realm, id string) (models.User, error) {
+	var user models.User
 	for _, ru := range ur.repoUsers {
 		if ru.ID == id && ru.Realm == realm {
 			return ru.User, nil
@@ -34,8 +27,8 @@ func (ur *InMemoryUserRepository) GetUser(realm, id string) (User, error) {
 	return user, userNotFoudError
 }
 
-func (ur *InMemoryUserRepository) CreateUser(user User) (User, error) {
-	var newUser User
+func (ur *InMemoryUserRepository) CreateUser(user models.User) (models.User, error) {
+	var newUser models.User
 	//check if user exists
 	_, err := ur.GetUser(user.Realm, user.ID)
 	if err == nil {
@@ -53,15 +46,15 @@ func (ur *InMemoryUserRepository) CreateUser(user User) (User, error) {
 		return newUser, errors.New("Realm does not exists")
 	}
 
-	ur.repoUsers = append(ur.repoUsers, RepoUser{
+	ur.repoUsers = append(ur.repoUsers, inMemoryRepoUser{
 		User: user,
 	})
 
 	return user, nil
 }
 
-func (ur *InMemoryUserRepository) UpdateUser(user User) (User, error) {
-	var updatedUser User
+func (ur *InMemoryUserRepository) UpdateUser(user models.User) (models.User, error) {
+	var updatedUser models.User
 
 	for _, ru := range ur.repoUsers {
 		if ru.ID == user.ID && ru.Realm == user.Realm {
@@ -109,4 +102,16 @@ func (ur *InMemoryUserRepository) ValidatePassword(realm, userID, password strin
 		}
 	}
 	return false, userNotFoudError
+}
+
+func NewInMemoryUserRepository() UserRepository {
+	return &InMemoryUserRepository{[]inMemoryRepoUser{
+		{
+			User: models.User{
+				ID:    "user1",
+				Realm: "users",
+			},
+			Password: "password1",
+		},
+	}}
 }

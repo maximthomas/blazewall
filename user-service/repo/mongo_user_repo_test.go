@@ -1,4 +1,4 @@
-package main
+package repo
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/maximthomas/blazewall/user-service/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -40,7 +41,7 @@ func TestUserRepositoryMongoDBCreateUser(t *testing.T) {
 
 	repo := getRepo()
 	t.Run("test create unexisting user", func(t *testing.T) {
-		user := User{
+		user := models.User{
 			Realm:      "users",
 			Roles:      []string{"admin"},
 			Properties: map[string]string{"foo": "bar"},
@@ -67,7 +68,7 @@ func TestUserRepositoryMongoDBGetUser(t *testing.T) {
 
 	t.Run("test getting existing user", func(t *testing.T) {
 
-		user := User{
+		user := models.User{
 			Realm:      "users",
 			Roles:      []string{"admin"},
 			Properties: map[string]string{"foo": "bar"},
@@ -85,7 +86,7 @@ func TestUserRepositoryMongoDBUpdateUser(t *testing.T) {
 
 	repo := getRepo()
 	t.Run("test getting unexisting user", func(t *testing.T) {
-		user := User{
+		user := models.User{
 			ID:         "bad",
 			Realm:      "users",
 			Roles:      []string{"admin"},
@@ -97,7 +98,7 @@ func TestUserRepositoryMongoDBUpdateUser(t *testing.T) {
 
 	t.Run("test update existing user", func(t *testing.T) {
 
-		user := User{
+		user := models.User{
 			Realm:      "users",
 			Roles:      []string{"admin"},
 			Properties: map[string]string{"foo": "bar"},
@@ -125,7 +126,7 @@ func TestUserRepositoryMongoDBDeleteUser(t *testing.T) {
 	})
 
 	t.Run("test deleting existing user", func(t *testing.T) {
-		user := User{
+		user := models.User{
 			Realm:      "users",
 			Roles:      []string{"admin"},
 			Properties: map[string]string{"foo": "bar"},
@@ -147,7 +148,7 @@ func TestUserRepositoryMongoDBDeleteUser(t *testing.T) {
 func TestUserRepositoryMongoDBSetValidatePassword(t *testing.T) {
 	repo := getRepo()
 
-	user := User{
+	user := models.User{
 		Realm:      "users",
 		Roles:      []string{"admin"},
 		Properties: map[string]string{"foo": "bar"},

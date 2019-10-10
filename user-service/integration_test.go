@@ -7,12 +7,20 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/maximthomas/blazewall/user-service/config"
+	"github.com/maximthomas/blazewall/user-service/controllers"
+
+	"github.com/maximthomas/blazewall/user-service/server"
+
+	"github.com/maximthomas/blazewall/user-service/models"
+	"github.com/maximthomas/blazewall/user-service/repo"
+
 	"github.com/gin-gonic/gin"
 
 	"github.com/stretchr/testify/assert"
 )
 
-var existingUser = User{
+var existingUser = models.User{
 	ID:    "user1",
 	Realm: "users",
 }
@@ -27,7 +35,7 @@ func TestGetUser(t *testing.T) {
 		router.ServeHTTP(recorder, request)
 		assert.Equal(t, 200, recorder.Result().StatusCode)
 
-		var responseUser User
+		var responseUser models.User
 		err := json.Unmarshal([]byte(recorder.Body.String()), &responseUser)
 		assert.NoError(t, err)
 		assert.Equal(t, existingUser, responseUser)
@@ -52,12 +60,12 @@ func TestCreateUser(t *testing.T) {
 		router.ServeHTTP(recorder, request)
 
 		assert.Equal(t, 200, recorder.Result().StatusCode)
-		var responseUser User
+		var responseUser models.User
 		responseBody := recorder.Body.String()
 		err := json.Unmarshal([]byte(responseBody), &responseUser)
 		assert.NoError(t, err)
 
-		wantUser := User{
+		wantUser := models.User{
 			ID:    "user2",
 			Realm: "users",
 			Roles: []string{"admin", "manager"},
@@ -89,8 +97,7 @@ func TestCreateUser(t *testing.T) {
 }
 
 func TestUpdateUser(t *testing.T) {
-	us := getUserService()
-	router := setupRouter(&us)
+	router := getRouter()
 	t.Run("test update existing user", func(t *testing.T) {
 		bodyStr := `{"id": "user1", "realm": "users", "roles": ["admin", "manager"]}`
 		body := bytes.NewBufferString(bodyStr)
@@ -98,7 +105,7 @@ func TestUpdateUser(t *testing.T) {
 		request := httptest.NewRequest("PUT", serviceURL+"/users/user1", body)
 		router.ServeHTTP(recorder, request)
 
-		var responseUser User
+		var responseUser models.User
 		responseBody := recorder.Body.String()
 		err := json.Unmarshal([]byte(responseBody), &responseUser)
 		assert.NoError(t, err)
@@ -191,7 +198,7 @@ func TestSetValidatePaswordUser(t *testing.T) {
 		request := httptest.NewRequest("POST", serviceURL+"/users/user1/validatepassword", body)
 		router.ServeHTTP(recorder, request)
 
-		var vpr ValidatePasswordResult
+		var vpr models.ValidatePasswordResult
 		responseBody := recorder.Body.String()
 		err := json.Unmarshal([]byte(responseBody), &vpr)
 		assert.NoError(t, err)
@@ -208,7 +215,7 @@ func TestSetValidatePaswordUser(t *testing.T) {
 		request := httptest.NewRequest("POST", serviceURL+"/users/user1/validatepassword", body)
 		router.ServeHTTP(recorder, request)
 
-		var vpr ValidatePasswordResult
+		var vpr models.ValidatePasswordResult
 		responseBody := recorder.Body.String()
 		err := json.Unmarshal([]byte(responseBody), &vpr)
 		assert.NoError(t, err)
@@ -220,25 +227,17 @@ func TestSetValidatePaswordUser(t *testing.T) {
 
 func getRouter() *gin.Engine {
 	us := getUserService()
-	return setupRouter(&us)
+	return server.SetupRouterWithController(us)
 }
 
-func getUserService() UserService {
-	return UserService{
-		uc: UserServiceConfig{
-			RealmRepos: map[string]UserRepository{"users": getInMemoryUserRepository()},
-		},
+func getUserService() controllers.UserController {
+	uc := config.UserServiceConfig{
+		RealmRepos: map[string]repo.UserRepository{"users": repo.NewInMemoryUserRepository()},
 	}
+	return controllers.GetUserControllerByUserServiceConfig(uc)
+	
 }
 
-func getInMemoryUserRepository() UserRepository {
-	return &InMemoryUserRepository{[]RepoUser{
-		{
-			User:     existingUser,
-			Password: "password1",
-		},
-	}}
-}
 func assertEqualJSON(t *testing.T, expected, actual string) bool {
 	t.Helper()
 	var o1 interface{}

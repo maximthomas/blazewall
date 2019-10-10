@@ -2,53 +2,28 @@ package main
 
 import (
 	"flag"
+	"os"
 
-	"github.com/gin-gonic/gin"
+	"github.com/maximthomas/blazewall/user-service/server"
+
+	"github.com/maximthomas/blazewall/user-service/config"
 )
 
 var port = flag.String("p", "8080", "User service port")
+var yamlConfigFile = flag.String("yc", "./config/user-service-test.yaml", "Yaml config file path")
 
-func setupRouter(us *UserService) *gin.Engine {
-	router := gin.Default()
-
-	v1 := router.Group("/user-service/v1")
-	{
-		users := v1.Group("/users")
-		{
-			users.GET("/:realm/:id", us.GetUser)
-			users.POST("", us.CreateUser)
-			users.PUT("/:realm/:id", us.UpdateUser)
-			users.DELETE("/:realm/:id", us.DeleteUser)
-			users.POST("/:realm/:id/setpassword", us.SetPassword)
-			users.POST("/:realm/:id/validatepassword", us.ValidatePassword)
-		}
+func check(err error) {
+	if err != nil {
+		panic(err)
 	}
-	return router
 }
 
 func main() {
 
 	flag.Parse()
-
-	repo := InMemoryUserRepository{[]RepoUser{
-		{
-			User: User{
-				ID:    "user1",
-				Realm: "users",
-			},
-			Password: "pass",
-		},
-	}}
-	repos := make(map[string]UserRepository)
-	repos["users"] = &repo
-
-	uc := UserServiceConfig{
-		RealmRepos: repos,
-	}
-
-	ss := UserService{
-		uc: uc,
-	}
-	router := setupRouter(&ss)
+	configReader, err := os.Open(*yamlConfigFile)
+	check(err)
+	config.Init(configReader)
+	router := server.SetupRouter()
 	router.Run(":" + *port)
 }

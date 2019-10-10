@@ -1,4 +1,4 @@
-package main
+package repo
 
 import (
 	"context"
@@ -7,11 +7,17 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 
 	"github.com/google/uuid"
+	"github.com/maximthomas/blazewall/user-service/models"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
+
+type mongoRepoUser struct {
+	models.User `bson:",inline"`
+	Password    string `json:"password,omitempty"`
+}
 
 type UserRepositoryMongoDB struct {
 	client     *mongo.Client
@@ -28,14 +34,14 @@ type UserRepositoryMongoDB struct {
 	ValidatePassword(realm, userID, password string) (bool, error)
 */
 
-func (ur *UserRepositoryMongoDB) GetUser(realm, userID string) (User, error) {
-	var user User
+func (ur *UserRepositoryMongoDB) GetUser(realm, userID string) (models.User, error) {
+	var user models.User
 	collection := ur.getCollection()
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 	filter := bson.M{"id": userID, "realm": realm}
 
-	var repoUser RepoUser
+	var repoUser mongoRepoUser
 	err := collection.FindOne(ctx, filter).Decode(&repoUser)
 
 	if err != nil {
@@ -45,11 +51,11 @@ func (ur *UserRepositoryMongoDB) GetUser(realm, userID string) (User, error) {
 	return repoUser.User, nil
 }
 
-func (ur *UserRepositoryMongoDB) CreateUser(user User) (User, error) {
+func (ur *UserRepositoryMongoDB) CreateUser(user models.User) (models.User, error) {
 	if user.ID == "" {
 		user.ID = uuid.New().String()
 	}
-	repoUser := RepoUser{
+	repoUser := mongoRepoUser{
 		User:     user,
 		Password: "",
 	}
@@ -66,14 +72,14 @@ func (ur *UserRepositoryMongoDB) CreateUser(user User) (User, error) {
 
 }
 
-func (ur *UserRepositoryMongoDB) UpdateUser(user User) (User, error) {
+func (ur *UserRepositoryMongoDB) UpdateUser(user models.User) (models.User, error) {
 
 	collection := ur.getCollection()
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
 	filter := bson.M{"id": user.ID, "realm": user.Realm}
-	var updatedUser RepoUser
+	var updatedUser mongoRepoUser
 	err := collection.FindOneAndUpdate(ctx, filter, bson.M{"$set": user}).Decode(&updatedUser)
 
 	if err != nil {
@@ -103,7 +109,7 @@ func (ur *UserRepositoryMongoDB) SetPassword(realm, userID, password string) err
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 	filter := bson.M{"id": userID, "realm": realm}
-	var updatedUser RepoUser
+	var updatedUser mongoRepoUser
 	err := collection.FindOneAndUpdate(ctx, filter, bson.M{"$set": bson.M{"password": password}}).Decode(&updatedUser)
 
 	if err != nil {
@@ -118,7 +124,7 @@ func (ur *UserRepositoryMongoDB) ValidatePassword(realm, userID, password string
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 	filter := bson.M{"id": userID, "realm": realm}
-	var repoUser RepoUser
+	var repoUser mongoRepoUser
 	err := collection.FindOne(ctx, filter).Decode(&repoUser)
 	var valid bool
 	if err != nil {
