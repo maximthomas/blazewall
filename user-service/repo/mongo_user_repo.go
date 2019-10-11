@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -143,6 +144,7 @@ func NewUserRepositoryMongoDB(uri, db, collection string) UserRepositoryMongoDB 
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+	log.Printf("connecting to mongo, uri: %v", uri)
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
 
 	if err != nil {

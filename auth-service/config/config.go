@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"io"
+	"log"
 
 	"gopkg.in/yaml.v3"
 )
@@ -32,6 +33,7 @@ type Endpoints struct {
 var ac AuthServiceConfig
 
 func Init(reader io.Reader) {
+	log.SetFlags(log.LstdFlags | log.Llongfile)
 	err := yaml.NewDecoder(reader).Decode(&ac)
 	if err != nil {
 		fmt.Println(err)

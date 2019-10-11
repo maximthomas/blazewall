@@ -1,15 +1,22 @@
-package main
+package config
 
 import (
 	"os"
 	"reflect"
 	"testing"
+
+	"github.com/maximthomas/blazewall/gateway-service/policy"
 )
 
 func TestNewProtectedSitesConfig(t *testing.T) {
-	configReader, err := os.Open("./test/gateway-config.yaml")
+	configReader, err := os.Open("./gateway-config-test.yaml")
+	if err != nil {
+		panic(err)
+	}
+	Init(configReader)
+	gc := GetConfig()
 
-	sitesConfig, err := NewProtectedSitesConfigYaml(configReader)
+	sitesConfig := gc.ProtectedSitesConfig
 
 	if err != nil {
 		panic(err)
@@ -31,7 +38,7 @@ func TestNewProtectedSitesConfig(t *testing.T) {
 		t.Errorf("could not get protected paths config %s", err)
 	}
 
-	if reflect.TypeOf(sitesConfig[0].ProtectedPathsConfig[0].PolicyValidator) != reflect.TypeOf(RealmsPolicyValidator{}) {
+	if reflect.TypeOf(sitesConfig[0].ProtectedPathsConfig[0].PolicyValidator) != reflect.TypeOf(policy.RealmsPolicyValidator{}) {
 		t.Errorf("bad policy validator")
 	}
 }

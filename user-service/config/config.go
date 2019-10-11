@@ -2,6 +2,9 @@ package config
 
 import (
 	"io"
+	"log"
+
+	"github.com/maximthomas/blazewall/user-service/models"
 
 	"github.com/maximthomas/blazewall/user-service/repo"
 
@@ -15,6 +18,9 @@ type UserServiceConfig struct {
 var usc UserServiceConfig
 
 func Init(reader io.Reader) {
+
+	log.SetFlags(log.LstdFlags | log.Llongfile)
+
 	type yamlRealm struct {
 		Name       string            `yaml:"realm"`
 		Type       string            `yaml:"type"`
@@ -36,6 +42,19 @@ func Init(reader io.Reader) {
 		case "mongodb":
 			ur := repo.NewUserRepositoryMongoDB(r.Parameters["uri"], r.Parameters["db"], r.Parameters["collection"])
 			usc.RealmRepos[r.Name] = &ur
+			//create test data
+
+			ur.CreateUser(models.User{
+				ID:    "admin",
+				Realm: "users",
+			})
+			ur.SetPassword("users", "user1", "password")
+
+			ur.CreateUser(models.User{
+				ID:    "admin",
+				Realm: "staff",
+			})
+			ur.SetPassword("staff", "admin", "password")
 
 		case "inmemory":
 			ur := repo.NewInMemoryUserRepository()

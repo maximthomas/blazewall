@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"fmt"
@@ -8,6 +8,11 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+
+	"github.com/maximthomas/blazewall/gateway-service/policy"
+	"github.com/maximthomas/blazewall/gateway-service/repo"
+
+	"github.com/maximthomas/blazewall/gateway-service/config"
 )
 
 const proxyHost = "gateway-service"
@@ -22,25 +27,25 @@ func TestPassThrough(t *testing.T) {
 
 	protectedURL, _ := url.Parse(protectedServer.URL)
 
-	gateway := NewGateway([]ProtectedSiteConfig{
+	gateway := NewGateway([]config.ProtectedSiteConfig{
 		{
 			RequestHost: proxyHost,
 			TargetHost:  protectedServer.URL,
-			ProtectedPathsConfig: []ProtectedPathConfig{
+			ProtectedPathsConfig: []config.ProtectedPathConfig{
 				{
 					URLPattern:      "/",
-					PolicyValidator: AllowedPolicyValidator{},
+					PolicyValidator: policy.AllowedPolicyValidator{},
 					AuthURL:         "http://auth-service",
 				},
 				{
 					URLPattern:      "/protected",
-					PolicyValidator: DeniedPolicyValidator{},
+					PolicyValidator: policy.DeniedPolicyValidator{},
 					AuthURL:         "http://auth-service",
 				},
 			},
-			proxy: httputil.NewSingleHostReverseProxy(protectedURL),
+			Proxy: httputil.NewSingleHostReverseProxy(protectedURL),
 		},
-	}, NewInMemorySessionRepository(nil))
+	}, repo.NewInMemorySessionRepository(nil))
 
 	t.Run("test proxy ok", func(t *testing.T) {
 		allowedRequest := newGetRequest("/")
@@ -69,23 +74,23 @@ func BenchmarkTestPass(b *testing.B) {
 		fmt.Fprintf(w, wantResponse)
 	}))
 
-	gateway := NewGateway([]ProtectedSiteConfig{
+	gateway := NewGateway([]config.ProtectedSiteConfig{
 		{
 			RequestHost: proxyHost,
 			TargetHost:  protectedServer.URL,
-			ProtectedPathsConfig: []ProtectedPathConfig{
+			ProtectedPathsConfig: []config.ProtectedPathConfig{
 				{
 					URLPattern:      "/",
-					PolicyValidator: AllowedPolicyValidator{},
+					PolicyValidator: policy.AllowedPolicyValidator{},
 				},
 				{
 					URLPattern:      "/protected",
-					PolicyValidator: DeniedPolicyValidator{},
+					PolicyValidator: policy.DeniedPolicyValidator{},
 				},
 			},
 		},
 	},
-		NewInMemorySessionRepository(nil))
+		repo.NewInMemorySessionRepository(nil))
 
 	for i := 0; i < b.N; i++ {
 		b.Run("test proxy ok", func(b *testing.B) {

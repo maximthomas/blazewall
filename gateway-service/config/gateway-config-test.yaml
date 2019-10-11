@@ -1,0 +1,34 @@
+protectedHosts:
+  -
+    requestHost: gateway-service
+    targetHost: 'http://protected-resource:8080'
+    pathsConfig:
+      -
+        policyValidator:
+          settings:
+            realms:
+              - staff
+              - users
+          type: realms
+        urlPattern: /
+        authUrl: http://auth.example.com:8081/auth-service/v1/users
+      -
+        policyValidator:
+          type: allowed
+        urlPattern: /allowed
+        authUrl: http://auth.example.com:8081/auth-service/v1/users
+  -
+    requestHost: gateway-service2
+    targetHost: 'http://protected-resource2:8080'
+    pathsConfig:
+      -
+        policyValidator:
+          type: denied
+        urlPattern: /denied
+      -
+        policyValidator:
+          type: authenticated
+        urlPattern: /authenticated
+sessionID: BlazewallSession
+endpoints:
+  sessionService: http://session-service:8080/session-service/v1/sessions

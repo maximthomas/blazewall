@@ -1,7 +1,9 @@
-package main
+package policy
 
 import (
 	"testing"
+
+	"github.com/maximthomas/blazewall/gateway-service/models"
 )
 
 func TestPolicyValidator(t *testing.T) {
@@ -9,7 +11,7 @@ func TestPolicyValidator(t *testing.T) {
 		name    string
 		p       PolicyValidator
 		want    bool
-		session *Session
+		session *models.Session
 	}{
 		{
 			name: "allowed policy validator test",
@@ -29,7 +31,7 @@ func TestPolicyValidator(t *testing.T) {
 				},
 			},
 			want: true,
-			session: &Session{
+			session: &models.Session{
 				Realm: "staff",
 			},
 		},
@@ -42,7 +44,7 @@ func TestPolicyValidator(t *testing.T) {
 				},
 			},
 			want: false,
-			session: &Session{
+			session: &models.Session{
 				Realm: "users",
 			},
 		},

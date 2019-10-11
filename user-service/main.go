@@ -10,7 +10,7 @@ import (
 )
 
 var port = flag.String("p", "8080", "User service port")
-var yamlConfigFile = flag.String("yc", "./config/user-service-test.yaml", "Yaml config file path")
+var yamlConfigFile = flag.String("yc", "./config/user-service.yaml", "Yaml config file path")
 
 func check(err error) {
 	if err != nil {

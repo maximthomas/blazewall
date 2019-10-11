@@ -7,13 +7,20 @@ services:
     restart: always
     ports:
       - "8081:8080"
+  
+  user-service:
+    build:
+      context: ./user-service
+    restart: always
+    #ports:
+    #  - "8081:8080"
 
   gateway-service:
     build:
       context: ./gateway-service
     restart: always
     ports:
-      - "8080:8080"
+      - "8082:8080"
 
   session-service:
     build:

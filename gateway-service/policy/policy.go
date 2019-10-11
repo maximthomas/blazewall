@@ -1,28 +1,30 @@
-package main
+package policy
 
 import (
 	"net/http"
+
+	"github.com/maximthomas/blazewall/gateway-service/models"
 )
 
 type PolicyValidator interface {
-	ValidatePolicy(r *http.Request, s *Session) bool
+	ValidatePolicy(r *http.Request, s *models.Session) bool
 }
 
 type AllowedPolicyValidator struct{}
 
-func (a AllowedPolicyValidator) ValidatePolicy(r *http.Request, s *Session) bool {
+func (a AllowedPolicyValidator) ValidatePolicy(r *http.Request, s *models.Session) bool {
 	return true
 }
 
 type DeniedPolicyValidator struct{}
 
-func (d DeniedPolicyValidator) ValidatePolicy(r *http.Request, s *Session) bool {
+func (d DeniedPolicyValidator) ValidatePolicy(r *http.Request, s *models.Session) bool {
 	return false
 }
 
 type AuthenticatedUserPolicyValidator struct{}
 
-func (a AuthenticatedUserPolicyValidator) ValidatePolicy(r *http.Request, s *Session) bool {
+func (a AuthenticatedUserPolicyValidator) ValidatePolicy(r *http.Request, s *models.Session) bool {
 	if s != nil {
 		return true
 	}
@@ -33,7 +35,7 @@ type RealmsPolicyValidator struct {
 	Realms []string
 }
 
-func (rp RealmsPolicyValidator) ValidatePolicy(r *http.Request, s *Session) bool {
+func (rp RealmsPolicyValidator) ValidatePolicy(r *http.Request, s *models.Session) bool {
 	if s == nil {
 		return false
 	}

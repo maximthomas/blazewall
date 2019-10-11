@@ -1,0 +1,13 @@
+protectedHosts:
+  -
+    requestHost: example.com:8080
+    targetHost: 'http://protected-service:8080'
+    pathsConfig:
+      -
+        policyValidator:
+          type: authenticated
+        urlPattern: /user
+        authUrl: http://auth.example.com:8081/auth-service/v1/users
+sessionID: BlazewallSession
+endpoints:
+  sessionService: http://session-service:8080/session-service/v1/sessions

@@ -1,38 +1,48 @@
-package main
+package repo
 
 import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
 	"net/http"
-)
 
-//Session struct represents session object from session service
-type Session struct {
-	ID         string            `json:"id,omitempty"`
-	UserID     string            `json:"userId,omitempty"`
-	Realm      string            `json:"realm,omitempty"`
-	Properties map[string]string `json:"properties,omitempty"`
-}
+	"github.com/maximthomas/blazewall/gateway-service/config"
+
+	"github.com/maximthomas/blazewall/gateway-service/models"
+)
 
 //SessionRepository is generic interface for different implementations
 type SessionRepository interface {
 	//returns sesson and existing flag
-	GetSession(id string) (session Session, exists bool)
+	GetSession(id string) (session models.Session, exists bool)
+}
+
+var sr SessionRepository
+
+func GetSessionRepository() SessionRepository {
+	return sr
+}
+
+func Init() {
+	gc := config.GetConfig()
+
+	sr = &RestSessionRepository{
+		endpoint: gc.Endpoints.SessionService,
+	}
 }
 
 //InMemorySessionRepository is a Session repository, stores sessions in memory
 type InMemorySessionRepository struct {
-	sessions map[string]Session
+	sessions map[string]models.Session
 }
 
-func (sr *InMemorySessionRepository) GetSession(id string) (session Session, exists bool) {
+func (sr *InMemorySessionRepository) GetSession(id string) (session models.Session, exists bool) {
 	session, exists = sr.sessions[id]
 	return session, exists
 }
 
 //NewInMemorySessionRepository creates new in memory session repository
-func NewInMemorySessionRepository(sessions map[string]Session) *InMemorySessionRepository {
+func NewInMemorySessionRepository(sessions map[string]models.Session) *InMemorySessionRepository {
 	return &InMemorySessionRepository{
 		sessions: sessions,
 	}
@@ -43,7 +53,7 @@ type RestSessionRepository struct {
 	client   http.Client
 }
 
-func (sr *RestSessionRepository) GetSession(id string) (session Session, exists bool) {
+func (sr *RestSessionRepository) GetSession(id string) (session models.Session, exists bool) {
 
 	resp, err := sr.client.Get(sr.endpoint + "/" + id)
 	if err != nil {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"log"
 	"os"
 	"strconv"
 
@@ -30,7 +31,7 @@ func setupRouter(ss *SessionService) *gin.Engine {
 func main() {
 
 	flag.Parse()
-
+	log.SetFlags(log.LstdFlags | log.Llongfile)
 	redisAddr := getEnv("REDIS_ADDRES", "localhost:6379")
 	redisPass := getEnv("REDIS_PASS", "")
 	redisDB := getEnvAsInt("REDIS_PASS", 0)

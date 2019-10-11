@@ -1,31 +1,49 @@
-package main
+package config
 
 import (
 	"errors"
-	"fmt"
 	"io"
+	"log"
 	"net/http/httputil"
 	"net/url"
+
+	"github.com/maximthomas/blazewall/gateway-service/policy"
 
 	"github.com/spf13/cast"
 	"gopkg.in/yaml.v3"
 )
 
+type GatewayConfig struct {
+	ProtectedSitesConfig []ProtectedSiteConfig
+	SessionID            string    `yaml:"sessionID"`
+	Endpoints            Endpoints `yaml:"endpoints"`
+}
+
+type Endpoints struct {
+	SessionService string `yaml:"sessionService"`
+}
+
 type ProtectedSiteConfig struct {
 	RequestHost          string
 	TargetHost           string
 	ProtectedPathsConfig []ProtectedPathConfig
-	proxy                *httputil.ReverseProxy
+	Proxy                *httputil.ReverseProxy
 }
 
 type ProtectedPathConfig struct {
 	URLPattern      string
-	PolicyValidator PolicyValidator
+	PolicyValidator policy.PolicyValidator
 	AuthURL         string
 }
 
-func NewProtectedSitesConfigYaml(reader io.Reader) ([]ProtectedSiteConfig, error) {
+var gc GatewayConfig
 
+func GetConfig() GatewayConfig {
+	return gc
+}
+
+func Init(reader io.Reader) {
+	log.SetFlags(log.LstdFlags | log.Llongfile)
 	type yamlPolicyValidator struct {
 		PolicyType string                 `yaml:"type"`
 		Settings   map[string]interface{} `yaml:"settings"`
@@ -37,48 +55,57 @@ func NewProtectedSitesConfigYaml(reader io.Reader) ([]ProtectedSiteConfig, error
 		AuthURL         string              `yaml:"authUrl"`
 	}
 
-	type yamlConfig struct {
+	type yamlSiteConfig struct {
 		RequestHost string              `yaml:"requestHost"`
 		TargetHost  string              `yaml:"targetHost"`
 		PathsConfig []yamlProtectedPath `yaml:"pathsConfig"`
 	}
 
-	getPolicyValidator := func(yp yamlPolicyValidator) (PolicyValidator, error) {
+	type yamlGatewayConfig struct {
+		YamlSitesConfig []yamlSiteConfig `yaml:"protectedHosts"`
+		SessionID       string           `yaml:"sessionID"`
+		Endpoints       Endpoints        `yaml:"endpoints"`
+	}
+
+	getPolicyValidator := func(yp yamlPolicyValidator) (policy.PolicyValidator, error) {
 
 		switch yp.PolicyType {
 		case "allowed":
-			return AllowedPolicyValidator{}, nil
+			return policy.AllowedPolicyValidator{}, nil
 		case "denied":
-			return DeniedPolicyValidator{}, nil
+			return policy.DeniedPolicyValidator{}, nil
 		case "authenticated":
-			return AuthenticatedUserPolicyValidator{}, nil
+			return policy.AuthenticatedUserPolicyValidator{}, nil
 		case "realms":
 			realms, err := cast.ToStringSliceE(yp.Settings["realms"])
 			if err != nil {
 				return nil, err
 			}
-			return RealmsPolicyValidator{Realms: realms}, nil
+			return policy.RealmsPolicyValidator{Realms: realms}, nil
 		}
 		return nil, errors.New("Undefined policy type: " + yp.PolicyType)
 	}
 
-	var config []yamlConfig
+	var result GatewayConfig
+
+	var config yamlGatewayConfig
 	err := yaml.NewDecoder(reader).Decode(&config)
 	if err != nil {
-		fmt.Println(err)
-		return nil, err
+		panic(err)
 	}
 
-	result := make([]ProtectedSiteConfig, len(config))
+	result.SessionID = config.SessionID
+	result.Endpoints = config.Endpoints
+	result.ProtectedSitesConfig = make([]ProtectedSiteConfig, len(config.YamlSitesConfig))
 
-	for confIdx, configEntry := range config {
+	for confIdx, configEntry := range config.YamlSitesConfig {
 
 		paths := make([]ProtectedPathConfig, len(configEntry.PathsConfig))
 
 		for pathIdx, pathEntry := range configEntry.PathsConfig {
 			pv, err := getPolicyValidator(pathEntry.PolicyValidator)
 			if err != nil {
-				return nil, err
+				panic(err)
 			}
 
 			paths[pathIdx] = ProtectedPathConfig{
@@ -90,15 +117,15 @@ func NewProtectedSitesConfigYaml(reader io.Reader) ([]ProtectedSiteConfig, error
 
 		targetURL, err := url.Parse(configEntry.TargetHost)
 		if err != nil {
-			return nil, err
+			panic(err)
 		}
 
-		result[confIdx] = ProtectedSiteConfig{
+		result.ProtectedSitesConfig[confIdx] = ProtectedSiteConfig{
 			RequestHost:          configEntry.RequestHost,
 			TargetHost:           configEntry.TargetHost,
 			ProtectedPathsConfig: paths,
-			proxy:                httputil.NewSingleHostReverseProxy(targetURL),
+			Proxy:                httputil.NewSingleHostReverseProxy(targetURL),
 		}
 	}
-	return result, nil
+	gc = result
 }
