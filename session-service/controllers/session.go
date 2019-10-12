@@ -1,16 +1,18 @@
-package main
+package controllers
 
 import (
+	"github.com/maximthomas/blazewall/session-service/models"
+	"github.com/maximthomas/blazewall/session-service/repo"
 	"log"
 
 	"github.com/gin-gonic/gin"
 )
 
 type SessionService struct {
-	sr SessionRepository
+	sr repo.SessionRepository
 }
 
-func (ss *SessionService) getSessionByID(c *gin.Context) {
+func (ss *SessionService) GetSessionByID(c *gin.Context) {
 	id := c.Param("id")
 	log.Printf("getting session by id: %s", id)
 	session, ok := ss.sr.GetSessionByID(id)
@@ -21,7 +23,7 @@ func (ss *SessionService) getSessionByID(c *gin.Context) {
 	}
 }
 
-func (ss *SessionService) findSessions(c *gin.Context) {
+func (ss *SessionService) FindSessions(c *gin.Context) {
 	realm := c.Query("realm")
 	userID := c.Query("userID")
 	log.Printf("findins sessions by realm: %s and userID: %s", realm, userID)
@@ -39,7 +41,7 @@ func (ss *SessionService) findSessions(c *gin.Context) {
 	}
 }
 
-func (ss *SessionService) deleteSession(c *gin.Context) {
+func (ss *SessionService) DeleteSession(c *gin.Context) {
 	id := c.Param("id")
 	log.Printf("deleting session by id: %s", id)
 	err := ss.sr.DeleteSession(id)
@@ -50,8 +52,8 @@ func (ss *SessionService) deleteSession(c *gin.Context) {
 	}
 }
 
-func (ss *SessionService) createSession(c *gin.Context) {
-	session := Session{}
+func (ss *SessionService) CreateSession(c *gin.Context) {
+	session := models.Session{}
 	log.Printf("creating session")
 	err := c.ShouldBindJSON(&session)
 	if err != nil {
@@ -66,7 +68,7 @@ func (ss *SessionService) createSession(c *gin.Context) {
 	}
 }
 
-func NewSessionService(sr SessionRepository) SessionService {
+func NewSessionService(sr repo.SessionRepository) SessionService {
 	return SessionService{
 		sr: sr,
 	}

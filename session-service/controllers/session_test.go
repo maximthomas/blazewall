@@ -1,8 +1,10 @@
-package main
+package controllers
 
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/maximthomas/blazewall/session-service/models"
+	"github.com/maximthomas/blazewall/session-service/repo"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -12,7 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var existingSesson = Session{
+var existingSesson = models.Session{
 	ID:     "sess1",
 	UserID: "user1",
 	Realm:  "users",
@@ -20,10 +22,10 @@ var existingSesson = Session{
 
 func getNewSessionService() SessionService {
 
-	repo := NewInMemorySessionRepository([]Session{
+	r := repo.NewInMemorySessionRepository([]models.Session{
 		existingSesson,
 	})
-	return NewSessionService(repo)
+	return NewSessionService(r)
 }
 
 func TestSessionGetById(t *testing.T) {
@@ -36,7 +38,7 @@ func TestSessionGetById(t *testing.T) {
 			gin.Param{Key: "id", Value: "bad"},
 		}
 
-		ss.getSessionByID(c)
+		ss.GetSessionByID(c)
 
 		assert.Equal(t, recorder.Result().StatusCode, 404)
 	})
@@ -49,11 +51,11 @@ func TestSessionGetById(t *testing.T) {
 				gin.Param{Key: "id", Value: "sess1"},
 			}
 
-			ss.getSessionByID(c)
+			ss.GetSessionByID(c)
 
 			assert.Equal(t, recorder.Result().StatusCode, 200)
 
-			var responseSession Session
+			var responseSession models.Session
 			err := json.Unmarshal([]byte(recorder.Body.String()), &responseSession)
 			assert.NoError(t, err)
 			assert.Equal(t, responseSession, existingSesson)
@@ -67,7 +69,7 @@ func TestSessionsFind(t *testing.T) {
 		recorder := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(recorder)
 		c.Request, _ = http.NewRequest("GET", "/?userId=1", nil)
-		ss.findSessions(c)
+		ss.FindSessions(c)
 		assert.Equal(t, recorder.Result().StatusCode, 400)
 	})
 
@@ -75,10 +77,10 @@ func TestSessionsFind(t *testing.T) {
 		recorder := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(recorder)
 		c.Request, _ = http.NewRequest("GET", "/?userID=user1&realm=users", nil)
-		ss.findSessions(c)
+		ss.FindSessions(c)
 		assert.Equal(t, recorder.Result().StatusCode, 200)
 
-		var responseSessions []Session
+		var responseSessions []models.Session
 		err := json.Unmarshal([]byte(recorder.Body.String()), &responseSessions)
 		assert.NoError(t, err)
 		assert.Equal(t, len(responseSessions), 1)
@@ -89,14 +91,14 @@ func TestSessionsFind(t *testing.T) {
 		recorder := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(recorder)
 		c.Request, _ = http.NewRequest("GET", "/?userID=bad_user&realm=users", nil)
-		ss.findSessions(c)
+		ss.FindSessions(c)
 		assert.Equal(t, recorder.Result().StatusCode, 404)
 	})
 }
 
 func TestDeleteSession(t *testing.T) {
 	ss := getNewSessionService()
-	ss.sr.CreateSession(Session{
+	ss.sr.CreateSession(models.Session{
 		ID:     "session2",
 		UserID: "user2",
 	})
@@ -106,19 +108,19 @@ func TestDeleteSession(t *testing.T) {
 		c.Params = gin.Params{
 			gin.Param{Key: "id", Value: "bad"},
 		}
-		ss.deleteSession(c)
+		ss.DeleteSession(c)
 		assert.Equal(t, recorder.Result().StatusCode, 404)
 	})
 
 	t.Run("try to delete existing session", func(t *testing.T) {
-		sr := ss.sr.(*InMemorySessionRepository)
+		sr := ss.sr.(*repo.InMemorySessionRepository)
 		assert.Equal(t, len(*sr), 2)
 		recorder := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(recorder)
 		c.Params = gin.Params{
 			gin.Param{Key: "id", Value: "session2"},
 		}
-		ss.deleteSession(c)
+		ss.DeleteSession(c)
 		assert.Equal(t, recorder.Result().StatusCode, 202)
 		assert.Equal(t, len(*sr), 1)
 	})
@@ -134,13 +136,13 @@ func TestCreateSession(t *testing.T) {
 		body := bytes.NewBufferString("asdasd")
 		c.Request, _ = http.NewRequest("POST", "/", body)
 
-		ss.createSession(c)
+		ss.CreateSession(c)
 		assert.Equal(t, recorder.Result().StatusCode, 500)
 	})
 
 	t.Run("try to create request from good data", func(t *testing.T) {
 
-		newSession := Session{
+		newSession := models.Session{
 			UserID: "user2",
 			Realm:  "users",
 		}
@@ -152,14 +154,14 @@ func TestCreateSession(t *testing.T) {
 		body := bytes.NewBufferString(bodyStr)
 		c.Request, _ = http.NewRequest("POST", "/", body)
 
-		ss.createSession(c)
+		ss.CreateSession(c)
 		assert.Equal(t, recorder.Result().StatusCode, 200)
 
-		var createdSession Session
+		var createdSession models.Session
 		responseBody := recorder.Body.String()
 		unmarsahErr := json.Unmarshal([]byte(responseBody), &createdSession)
 		assert.NoError(t, unmarsahErr)
 		assert.Equal(t, createdSession.UserID, newSession.UserID)
-		assertNotEmpty(t, createdSession.ID)
+		assert.NotEmpty(t, createdSession.ID)
 	})
 }

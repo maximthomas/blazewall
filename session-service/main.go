@@ -2,6 +2,8 @@ package main
 
 import (
 	"flag"
+	"github.com/maximthomas/blazewall/session-service/controllers"
+	"github.com/maximthomas/blazewall/session-service/repo"
 	"log"
 	"os"
 	"strconv"
@@ -11,17 +13,17 @@ import (
 
 var port = flag.String("p", "8080", "Session service port")
 
-func setupRouter(ss *SessionService) *gin.Engine {
+func setupRouter(ss *controllers.SessionService) *gin.Engine {
 	router := gin.Default()
 
 	v1 := router.Group("/session-service/v1")
 	{
 		session := v1.Group("/sessions")
 		{
-			session.GET("/:id", ss.getSessionByID)
-			session.DELETE("/:id", ss.deleteSession)
-			session.POST("/", ss.createSession)
-			session.GET("/", ss.findSessions)
+			session.GET("/:id", ss.GetSessionByID)
+			session.DELETE("/:id", ss.DeleteSession)
+			session.POST("/", ss.CreateSession)
+			session.GET("/", ss.FindSessions)
 		}
 
 	}
@@ -36,8 +38,8 @@ func main() {
 	redisPass := getEnv("REDIS_PASS", "")
 	redisDB := getEnvAsInt("REDIS_PASS", 0)
 
-	sr := NewSessionRepositoryRedis(redisAddr, redisPass, redisDB)
-	ss := NewSessionService(&sr)
+	sr := repo.NewSessionRepositoryRedis(redisAddr, redisPass, redisDB)
+	ss := controllers.NewSessionService(&sr)
 
 	router := setupRouter(&ss)
 	router.Run(":" + *port)

@@ -1,23 +1,25 @@
-package main
+package repo
+
 
 import (
+	"github.com/maximthomas/blazewall/session-service/models"
 	"reflect"
 	"testing"
 )
 
 func TestInMemorySessionRepository(t *testing.T) {
-	session1 := Session{
+	session1 := models.Session{
 		ID:     "sess1",
 		UserID: "user1",
 		Realm:  "users",
 	}
 
-	sessions := []Session{
+	sessions := []models.Session{
 		session1,
 	}
 	repo := NewInMemorySessionRepository(sessions)
 
-	newSession, err := repo.CreateSession(Session{
+	newSession, err := repo.CreateSession(models.Session{
 		UserID: "user2",
 		Realm:  "users",
 	})

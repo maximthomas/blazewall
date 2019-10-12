@@ -1,7 +1,9 @@
-package main
+package repo
+
 
 import (
 	"encoding/json"
+	"github.com/maximthomas/blazewall/session-service/models"
 	"log"
 	"time"
 
@@ -14,8 +16,8 @@ type SessionRepositoryRedis struct {
 	client *redis.Client
 }
 
-func (repo *SessionRepositoryRedis) GetSessionByID(id string) (Session, bool) {
-	var session Session
+func (repo *SessionRepositoryRedis) GetSessionByID(id string) (models.Session, bool) {
+	var session models.Session
 	val, err := repo.client.Get(id).Result()
 	if err != nil {
 		return session, false
@@ -23,7 +25,7 @@ func (repo *SessionRepositoryRedis) GetSessionByID(id string) (Session, bool) {
 
 	err = json.Unmarshal([]byte(val), &session)
 	if err != nil {
-		log.Fatalf("Error unmarshalling session %v", err)
+		log.Printf("Error unmarshalling session %v", err)
 		panic(err)
 	}
 	return session, true
@@ -38,7 +40,7 @@ func (repo *SessionRepositoryRedis) DeleteSession(id string) error {
 	return err
 }
 
-func (repo *SessionRepositoryRedis) CreateSession(session Session) (Session, error) {
+func (repo *SessionRepositoryRedis) CreateSession(session models.Session) (models.Session, error) {
 	if session.ID == "" {
 		session.ID = uuid.New().String()
 	}
@@ -57,7 +59,7 @@ func (repo *SessionRepositoryRedis) CreateSession(session Session) (Session, err
 	return session, nil
 }
 
-func (repo *SessionRepositoryRedis) Find(realm, userID string) []Session {
+func (repo *SessionRepositoryRedis) Find(realm, userID string) []models.Session {
 	panic("Method not implemented")
 }
 

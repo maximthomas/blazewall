@@ -1,7 +1,9 @@
-package main
+package repo
+
 
 import (
 	"encoding/json"
+	"github.com/maximthomas/blazewall/session-service/models"
 	"testing"
 	"time"
 
@@ -11,7 +13,7 @@ import (
 
 const existingSessionID = "a5624f6e-63a8-4702-a6fa-3f4e001f61c7"
 
-var existingRedisSesson = Session{
+var existingRedisSesson = models.Session{
 	ID:         existingSessionID,
 	UserID:     "user1",
 	Realm:      "users",
@@ -27,7 +29,7 @@ func TestRedisGetSession(t *testing.T) {
 	}
 	defer s.Close()
 
-	sessionBytes, _ := json.Marshal(existingSesson)
+	sessionBytes, _ := json.Marshal(existingRedisSesson)
 	s.Set(existingSessionID, string(sessionBytes))
 
 	sr := NewSessionRepositoryRedis(s.Addr(), "", 0)
@@ -40,7 +42,7 @@ func TestRedisGetSession(t *testing.T) {
 	t.Run("get existing session", func(t *testing.T) {
 		gotSession, exists := sr.GetSessionByID(existingSessionID)
 		assert.True(t, exists)
-		assert.Equal(t, existingSesson, gotSession)
+		assert.Equal(t, existingRedisSesson, gotSession)
 	})
 }
 
@@ -53,7 +55,7 @@ func TestRedisDeleteSession(t *testing.T) {
 
 	sr := NewSessionRepositoryRedis(s.Addr(), "", 0)
 
-	sessionBytes, _ := json.Marshal(existingSesson)
+	sessionBytes, _ := json.Marshal(existingRedisSesson)
 	s.Set(existingSessionID, string(sessionBytes))
 
 	t.Run("delete not existing session", func(t *testing.T) {
@@ -83,7 +85,7 @@ func TestRedisCreateSession(t *testing.T) {
 
 	t.Run("create session", func(t *testing.T) {
 
-		newRedisSesson := Session{
+		newRedisSesson := models.Session{
 			UserID:     "user1",
 			Realm:      "users",
 			Expired:    (time.Now().UnixNano() / int64(time.Millisecond)) + 60*60*24,
@@ -99,3 +101,4 @@ func TestRedisCreateSession(t *testing.T) {
 		assert.Equal(t, string(createdBytes), existing)
 	})
 }
+
