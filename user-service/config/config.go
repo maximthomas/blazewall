@@ -47,12 +47,22 @@ func Init(reader io.Reader) {
 			ur.CreateUser(models.User{
 				ID:    "admin",
 				Realm: "users",
+				Roles: []string{"admin", "manager"},
+				Properties: map[string]string{
+					"firstname": "John",
+					"lastname":  "Doe",
+				},
 			})
-			ur.SetPassword("users", "user1", "password")
+			ur.SetPassword("users", "admin", "password")
 
 			ur.CreateUser(models.User{
 				ID:    "admin",
 				Realm: "staff",
+				Roles: []string{"admin"},
+				Properties: map[string]string{
+					"firstname": "Rick",
+					"lastname":  "Sanches",
+				},
 			})
 			ur.SetPassword("staff", "admin", "password")
 

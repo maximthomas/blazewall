@@ -7,7 +7,7 @@ protectedHosts:
         policyValidator:
           type: authenticated
         urlPattern: /user
-        authUrl: http://auth.example.com:8081/auth-service/v1/users
+        authUrl: http://auth.example.com:8081/auth-service/v1/login?realm=users
 sessionID: BlazewallSession
 endpoints:
   sessionService: http://session-service:8080/session-service/v1/sessions

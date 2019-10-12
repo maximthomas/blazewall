@@ -1,6 +1,13 @@
 version: '3.1'
 
 services:
+  gateway-service:
+    build:
+      context: ./gateway-service
+    restart: always
+    ports:
+      - "8080:8080"
+
   auth-service:
     build:
       context: ./auth-service
@@ -12,13 +19,6 @@ services:
     build:
       context: ./user-service
     restart: always
-    #ports:
-    #  - "8081:8080"
-
-  gateway-service:
-    build:
-      context: ./gateway-service
-    restart: always
     ports:
       - "8082:8080"
 
@@ -26,6 +26,8 @@ services:
     build:
       context: ./session-service
     restart: always
+    ports:
+      - "8083:8080"
     environment: 
       REDIS_ADDRES: "redis:6379"
 

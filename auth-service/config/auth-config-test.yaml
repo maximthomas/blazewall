@@ -7,7 +7,7 @@ realms:
         type: userService
         redirectOnSuccess: "http://example.com:8080/user"
         parameters:
-          endpoint: http://user-service:8081/user-service/v1/
+          endpoint: http://user-service:8080/user-service/v1
           realm: users
   -
     name: staff
@@ -16,7 +16,7 @@ realms:
       -
         type: userService
         parameters:
-          endpoint: http://user-service:8081/user-service/v1/
+          endpoint: http://user-service:8080/user-service/v1
           realm: staff
 cookieDomains:
   - .example.com

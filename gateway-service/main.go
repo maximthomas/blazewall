@@ -22,6 +22,7 @@ func check(err error) {
 }
 
 func main() {
+	log.SetFlags(log.LstdFlags | log.Llongfile)
 	flag.Parse()
 	configReader, err := os.Open(*yamlConfigFile)
 	check(err)

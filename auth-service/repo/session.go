@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 
@@ -33,19 +34,23 @@ func (sr *RestSessionRepository) CreateSession(session models.Session) (models.S
 	buf := bytes.NewBuffer(sessBytes)
 	resp, err := sr.client.Post(sr.Endpoint, "application/json", buf)
 	if err != nil {
+		log.Printf("error creating session: %v", err)
 		return newSession, err
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
+		log.Printf("error creating session: %v", err)
 		return newSession, err
 	}
 
 	err = json.Unmarshal(body, &newSession)
 	if err != nil {
+		log.Printf("error creating session: %v", err)
 		return newSession, err
 	}
+	log.Printf("created new session: %v", newSession)
 	return newSession, err
 }
 

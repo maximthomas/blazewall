@@ -17,6 +17,7 @@ func main() {
 		if exists {
 			username = r.Header["X-Blazewall-Session"][0]
 		}
+
 		data := struct {
 			Username string
 		}{

@@ -3,7 +3,6 @@ package config
 import (
 	"errors"
 	"io"
-	"log"
 	"net/http/httputil"
 	"net/url"
 
@@ -43,7 +42,6 @@ func GetConfig() GatewayConfig {
 }
 
 func Init(reader io.Reader) {
-	log.SetFlags(log.LstdFlags | log.Llongfile)
 	type yamlPolicyValidator struct {
 		PolicyType string                 `yaml:"type"`
 		Settings   map[string]interface{} `yaml:"settings"`

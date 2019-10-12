@@ -23,24 +23,30 @@ type UserRestService struct {
 
 func (us *UserRestService) GetUser(realm, id string) (user models.User, exists bool) {
 
-	resp, err := us.client.Get(us.endpoint + "/" + realm + "/" + id)
+	resp, err := us.client.Get(us.endpoint + "/users/" + realm + "/" + id)
 	if err != nil {
-		log.Fatalf("error getting session: %v", err)
+		log.Printf("error getting user: %v", err)
 		return user, exists
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode >= 300 {
+		log.Printf("got bad response from user service: %v", resp)
+		return user, exists
+	}
+
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatalf("error getting session: %v", err)
+		log.Printf("error getting user: %v", err)
 		return user, exists
 	}
 
 	err = json.Unmarshal(body, &user)
 	if err != nil {
-		log.Fatalf("error unmarshalling session: %v", err)
+		log.Printf("error unmarshalling user: %v", err)
 		return user, exists
 	}
+	log.Printf("got user user: %v", user)
 	exists = true
 	return user, exists
 }
@@ -57,26 +63,34 @@ func (us *UserRestService) ValidatePassword(realm, id, password string) (valid b
 	}
 
 	buf := bytes.NewBuffer(prBytes)
-	resp, err := us.client.Post(us.endpoint+"/"+realm+"/"+id, "application/json", buf)
+	resp, err := us.client.Post(us.endpoint+"/users/"+realm+"/"+id+"/validatepassword", "application/json", buf)
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("error validating password: %v", err)
 		return valid
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode >= 300 {
+		log.Printf("got bad response from user service: %v", resp)
+		return valid
+	}
+
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("error validating password: %v", err)
 		return valid
 	}
 	var vpr models.ValidatePasswordResult
 
 	err = json.Unmarshal(body, &vpr)
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("error validating password: %v", err)
 		return valid
 	}
 	valid = vpr.Valid
+
+	log.Printf("password validation result for user: %v %v %v", realm, id, valid)
+
 	return valid
 }
 
