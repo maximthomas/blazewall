@@ -1,0 +1,8 @@
+realms: #realms for user service, to use different user databases
+  -
+    realm: users #realm name
+    type: mongodb #database type
+    parameters: #database connection parameters
+      uri: 'mongodb://root:example@mongo:27017'
+      db: users
+      collection: users

@@ -1,13 +1,13 @@
-protectedHosts:
+protectedHosts: #array of hosts
   -
-    requestHost: example.com:8080
-    targetHost: 'http://protected-service:8080'
-    pathsConfig:
+    requestHost: example.com:8080 #gateway host and port
+    targetHost: 'http://protected-service:8080' #tagret host and port
+    pathsConfig: #paths and policies config
       -
         policyValidator:
-          type: authenticated
-        urlPattern: /user
-        authUrl: http://auth.example.com:8081/auth-service/v1/login?realm=users
-sessionID: BlazewallSession
+          type: authenticated #could also be 'realms' 'allowed', 'denied', 
+        urlPattern: /user #protected url
+        authUrl: http://auth.example.com:8081/auth-service/v1/login?realm=users #auth-service url
+sessionID: BlazewallSession #session cookie
 endpoints:
-  sessionService: http://session-service:8080/session-service/v1/sessions
+  sessionService: http://session-service:8080/session-service/v1/sessions # session-service endpoint

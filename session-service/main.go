@@ -36,7 +36,7 @@ func main() {
 	log.SetFlags(log.LstdFlags | log.Llongfile)
 	redisAddr := getEnv("REDIS_ADDRES", "localhost:6379")
 	redisPass := getEnv("REDIS_PASS", "")
-	redisDB := getEnvAsInt("REDIS_PASS", 0)
+	redisDB := getEnvAsInt("REDIS_DB", 0)
 
 	sr := repo.NewSessionRepositoryRedis(redisAddr, redisPass, redisDB)
 	ss := controllers.NewSessionService(&sr)

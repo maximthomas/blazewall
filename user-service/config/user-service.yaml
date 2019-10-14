@@ -1,8 +1,0 @@
-realms:
-  -
-    realm: users
-    type: mongodb
-    parameters:
-      uri: 'mongodb://root:example@mongo:27017'
-      db: users
-      collection: users

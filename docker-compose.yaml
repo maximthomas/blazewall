@@ -2,6 +2,7 @@ version: '3.1'
 
 services:
   gateway-service:
+    image: blazewall/gateway-service
     build:
       context: ./gateway-service
     restart: always
@@ -9,6 +10,7 @@ services:
       - "8080:8080"
 
   auth-service:
+    image: blazewall/auth-service
     build:
       context: ./auth-service
     restart: always
@@ -16,6 +18,7 @@ services:
       - "8081:8080"
   
   user-service:
+    image: blazewall/user-service
     build:
       context: ./user-service
     restart: always
@@ -23,6 +26,7 @@ services:
       - "8082:8080"
 
   session-service:
+    image: blazewall/session-service
     build:
       context: ./session-service
     restart: always
@@ -32,6 +36,7 @@ services:
       REDIS_ADDRES: "redis:6379"
 
   protected-service:
+    image: blazewall/protected-service
     build:
       context: ./protected-service
     restart: always    

@@ -7,6 +7,6 @@ FROM alpine
 RUN adduser -S -D -H -h /app appuser
 USER appuser
 COPY --from=builder /build/main /app/
-ADD ./config/user-service.yaml /app/config/user-service.yaml
+ADD ./config/user-config.yaml /app/config/user-config.yaml
 WORKDIR /app
-CMD ["./main", "-yc", "./config/user-service.yaml"]
+CMD ["./main", "-yc", "./config/user-config.yaml"]
