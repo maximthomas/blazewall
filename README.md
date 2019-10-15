@@ -24,21 +24,26 @@ under the License.
 **BLAZEWALL** is an Open Source Single Sign On and Access Management platform built in microservice architecture 
 and released under Apache 2.0 license.
 
-### Solution architecture shown on the diagram below:
+## Table of Contents]
+  * [Solution architecture](#solution-architecture)
+  * [Processes](#processes)
+  * [Quick Start](#quick-start)
+  * [Protecting Your Own Site](#protecting-your-own-site)
+
+## Solution architecture
+
+Solution architecture shown on the diagram below:
 ![Services interaction diagram](docs/img/services-diagram.png)
 
 ### Services:
 
 |Service|Description|
 |-------|-----------|
-|**auth-service**|Authentication frontend, responsible for signing up or signing in users.|
-|**gateway-service**|Proxies all user requests to protected resources. Gateway insures, if the user request does not violate security policy and pass the request to the protected resource. If the request violates policy, gateway service denies request, and redirects user to authentication.|
+|**auth-service**|Authentication service, responsible for signing up or signing in users.|
+|**gateway-service**|Proxies all user requests to protected resources. Gateway insures, if the user request does not violate security policy enriches the request with user session info and passes the request to the protected resource. If the request violates policy, gateway service denies this request, and redirects user to authentication.|
 |**session-service**|Stores and manages user sessions.|
 |**user-service**|Responsible for user account management.|
-gateway-service|
-|**test-service**|Test service with unsecured and secured zone|
-|**policy-service**|Will be developed in future releases, to externalize policy decision to external service from 
-|**idm-service**|User indentities manager UI, will be developed in future releases
+|**protected-service**|Test service with unsecured and secured zone|
 
 ## Processes
 
@@ -63,7 +68,7 @@ Add following entry to `/etc/hosts` file on Linux or Mac or `c:\Windows\System32
 
 Start all services locally with docker-compose
 ```bash
-$ docker-compose up --build
+docker-compose up --build
 ```
 After all services started go to `http://example.com:8080/`, you'll see page avialable to all users
 Click on the `Try to Authenticate` button. You will be redirected to the page `http://example.com:8080/user` protected by the `gateway-servce`
@@ -89,7 +94,7 @@ We'll take `protected-service` as an example
 Lets start the service in docker container. 
 
 ```bash
-docker run --name protected-service -h protected-service --network=blazewall-network blazewall/protected-service
+docker run --name protected-service -h protected-service --network=blazewall-network -d blazewall/protected-service
 ```
 There are no port forwarding, so the site can not be accessed from external network.
 
@@ -97,8 +102,7 @@ There are no port forwarding, so the site can not be accessed from external netw
 
 Create or modify gateway-service yaml configuration gateway-config.yaml file. You can find sample configuration in  [gateway-config-test.yaml](./gateway-service/config/gateway-config-test.yaml)
 
-
-Lets setup hosts, paths and policies for this paths, see [gateway-config.yaml](./gateway-service/config/gateway-config.yaml)
+Crteate config file for gateway-service `gateway-config.yaml` to setup hosts, paths and policies for this paths:
 
 ```yaml
 protectedHosts: #array of hosts
@@ -124,14 +128,17 @@ docker run --name gateway-service \
 -p 8080:8080 \
 --network=blazewall-network \
 blazewall/gateway-service \
+-d \
 ./main -yc /app/config/gateway-config.yaml
 ```
+And check if protected service could be accessed via gateway `http://example.com:8080`
 
-And check if protected service could be accessed via gateway
+
 
 ### Configure **auth-service**
 
-Create or modify auth-service yaml configuration `auth-config.yaml` file. You can find sample configuration in [auth-config-test.yaml](./auth-service/config/auth-config-test.yaml)
+Create or auth-service yaml configuration `auth-config.yaml` file. You can find sample configuration in [auth-config-test.yaml](./auth-service/config/auth-config-test.yaml):
+
 ```yaml
 realms: #set of realms
   -
@@ -165,6 +172,7 @@ docker run --name auth-service \
 -v $(pwd)/auth-config.yaml:/app/config/auth-config.yaml \
 -p 8081:8080 \
 --network=blazewall-network \
+-d \
 blazewall/auth-service \
 ./main -yc /app/config/auth-config.yaml
 ```
@@ -188,15 +196,19 @@ Start session-service
 docker run --name session-service \
 --env REDIS_ADDRES=redis:6379 \
 --network=blazewall-network \
+-d \
 blazewall/session-service
 ```
 
 ### Configure **user-service**
 
-User service could use different database types for the dofferent realms. Current version support only MongoDB.
+User service could use different database types for the different realms. Current version supports only MongoDB.
 You can configure **user-service** using yaml file.
 There are connection setting for each realm in the yaml file.
-You can find sample configuration in [user-config.yaml](./user-service/config/user-config.yaml) and [user-config-test.yaml](./user-service/config/user-config-test.yaml)
+You can find sample configuration in [user-config-test.yaml](./user-service/config/user-config-test.yaml)
+
+Create `user-config.yaml` file:
+
 ```yaml
 realms: #realms for user service, to use different user databases
   -
@@ -212,6 +224,7 @@ Run MongoDB
 ```bash
 docker run --name mongo \
 --env MONGO_INITDB_ROOT_USERNAME=root --env MONGO_INITDB_ROOT_PASSWORD=example \
+-d \
 --network=blazewall-network -h mongo mongo
 ```
 
@@ -220,6 +233,7 @@ Run user-service
 docker run --name user-service \
 -v $(pwd)/user-config.yaml:/app/config/user-config.yaml \
 --network=blazewall-network \
+-d \
 blazewall/user-service \
 ./main -yc /app/config/user-config.yaml
 ```
