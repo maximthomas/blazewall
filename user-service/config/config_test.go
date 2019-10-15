@@ -8,7 +8,7 @@ import (
 )
 
 func TestNewUserServiceConfigYaml(t *testing.T) {
-	configReader, err := os.Open("./user-service-test.yaml")
+	configReader, err := os.Open("./user-config-test.yaml")
 	assert.NoError(t, err)
 	Init(configReader)
 	usc := GetUserServiceConfig()
