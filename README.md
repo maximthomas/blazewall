@@ -24,7 +24,7 @@ under the License.
 **BLAZEWALL** is an Open Source Single Sign On and Access Management platform built in microservice architecture 
 and released under Apache 2.0 license.
 
-## Table of Contents]
+## Table of Contents
   * [Solution architecture](#solution-architecture)
   * [Processes](#processes)
   * [Quick Start](#quick-start)
