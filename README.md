@@ -21,7 +21,7 @@ under the License.
 
 ![Blazewall logo](docs/img/logo.png)
 
-**BLAZEWALL** is an Open Source Single Sign-On and Access Management platform built in microservice architecture 
+**BLAZEWALL** is an Open Source Single Sign-On and Access Management platform built with microservice architecture 
 and released under Apache 2.0 license.
 
 ## Table of Contents
@@ -32,7 +32,7 @@ and released under Apache 2.0 license.
 
 ## Solution architecture
 
-The solution architecture is shown on the diagram below:
+The solution architecture is shown in the diagram below:
 ![Services interaction diagram](docs/img/services-diagram.png)
 
 ### Services:
@@ -40,7 +40,7 @@ The solution architecture is shown on the diagram below:
 |Service|Description|
 |-------|-----------|
 |**auth-service**|Authentication service, responsible for signing up or signing in users|
-|**gateway-service**|Proxies all user requests to protected resources. Gateway insures, if an user request does not violate security policy enriches the request with the user session info and passes the request to the protected resource. If the request violates policy, gateway service denies this request, and redirects the user to authentication|
+|**gateway-service**|Proxies all user requests to protected resources. Gateway insures if a user request does not violate the security policy enriches the request with the user session info and passes the request to the protected resource. If the request violates the policy, gateway service denies this request and redirects the user to the authentication|
 |**session-service**|Stores and manages user sessions|
 |**user-service**|Responsible for user account management|
 |**protected-service**|Test service with unsecured and secured zone|
@@ -70,9 +70,9 @@ Start all services locally with docker-compose:
 ```bash
 docker-compose up --build
 ```
-After all the services started go to `http://example.com:8080/`, you will see an entry point page that is avialable to all users. Click on the `Try to Authenticate` button. You will be redirected to the page `http://example.com:8080/user` protected by `gateway-servce`.
+After all the services started, go to `http://example.com:8080/`, you will see an entry point page that is available to all users. Click on the `Try to Authenticate` button. You will be redirected to the page `http://example.com:8080/user` protected by `gateway-service`.
 
-`gateway-service` checks wheater user is authenticated or not, if he is not, redirects him to the `auth-service` `http://auth.example.com:8081/auth-service/v1/users`
+`gateway-service` checks whether the user is authenticated or not, if he is not, redirects him to the `auth-service` `http://auth.example.com:8081/auth-service/v1/users`
 
 Enter default credentials: login `admin` and password `password` to authenticate.
 
@@ -80,7 +80,7 @@ After authentication succeded, you will be redirected back to the protected reso
 
 ## Protecting Your Own Site
 
-Let us describe how to protect your own service step by step using Docker.
+Let us describe how to protect your service step by step using Docker.
 
 ### Create network
 
@@ -95,13 +95,13 @@ Let us run the service in a Docker container.
 ```bash
 docker run --name protected-service -h protected-service --network=blazewall-network -d blazewall/protected-service
 ```
-There is no port forwarding, so the site cannot be accessed from external network.
+There is no port forwarding, so the site cannot be accessed from an external network.
 
 ### Configure **gateway-service**
 
 Create or modify the gateway-service yaml configuration in `gateway-config.yaml` file. You can find a configuration sample in  [gateway-config-test.yaml](./gateway-service/config/gateway-config-test.yaml)
 
-Create a config file for gateway-service named `gateway-config.yaml` in order to setup hosts, paths and policies:
+Create a config file for gateway-service named `gateway-config.yaml` to set up hosts, paths, and policies:
 
 ```yaml
 protectedHosts: #array of hosts
