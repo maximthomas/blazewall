@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/maximthomas/blazewall/auth-service/config"
+	_ "github.com/maximthomas/blazewall/auth-service/pkg/config"
 
 	"github.com/google/uuid"
 
@@ -79,8 +79,8 @@ func (sr *DummySessionRepository) DeleteSession(sessionID string) error {
 var sr SessionRepository
 
 func InitSessionRepo() {
-	ac := config.GetConfig()
-	sr = &RestSessionRepository{Endpoint: ac.Endpoints.SessionService}
+	//ac := config.GetConfig()
+	//sr = &RestSessionRepository{Endpoint: ac.Endpoints.SessionService}
 	local := os.Getenv("DEV_LOCAL")
 	if local == "true" {
 		sr = &DummySessionRepository{}

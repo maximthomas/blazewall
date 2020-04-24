@@ -1,0 +1,23 @@
+authentication:
+  realms:
+    staff:
+      modules:
+        login:
+          type: "login"
+          properties:
+        otp:
+          type: "otp"
+          properties:
+            driver: "smpp"
+
+      authChains:
+        login:
+          modules:
+            - id: "login"
+              properties:
+            - id: "otp"
+              properties:
+      datastore:
+        type: "userService"
+        url: "http://user-service:8080/user-service/v1/users"
+        authorization: "none"

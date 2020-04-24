@@ -1,0 +1,25 @@
+realms: #set of realms
+  -
+    name: users #realm name
+    redirectOnSuccess: "http://example.com:8080/user" #redirect location after successfull authentication
+    authConfig: #authenctication configyration
+      -
+        type: userService #authenticate via user-service, shows login and password page
+        parameters: #authentication parameters
+          endpoint: http://user-service:8080/user-service/v1 #user-service endpoing
+          realm: users #user service realm
+  -
+    name: staff
+    redirectOnSuccess: "http://example.com:8080/user"
+    authConfig:
+      -
+        type: userService
+        parameters:
+          endpoint: http://user-service:8080/user-service/v1
+          realm: staff
+cookieDomains: #array of cookie domains, where cokie should set
+  - .example.com
+  - localhost
+sessionID: BlazewallSession #blazewall session cooke name, should be the same as in gateway-service
+endpoints:
+  sessionService: http://session-service:8080/session-service/v1/sessions #session service endpoint
