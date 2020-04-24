@@ -46,14 +46,16 @@ func (lm *LoginPassword) ProcessCallbacks(inCbs []models.Callback, lss *auth.Log
 func NewLoginModule(base BaseAuthModule) *LoginPassword {
 	(&base).callbacks = []models.Callback{
 		{
-			Name:  "login",
-			Type:  "text",
-			Value: "",
+			Name:   "login",
+			Type:   "text",
+			Prompt: "Login",
+			Value:  "",
 		},
 		{
-			Name:  "password",
-			Type:  "password",
-			Value: "",
+			Name:   "password",
+			Type:   "password",
+			Prompt: "Password",
+			Value:  "",
 		},
 	}
 	return &LoginPassword{

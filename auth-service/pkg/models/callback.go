@@ -4,8 +4,10 @@ type Callback struct {
 	Name       string            `json:"name,omitempty"`
 	Type       string            `json:"type"`
 	Value      string            `json:"value"`
+	Prompt     string            `json:"prompt,omitempty"`
 	Validation string            `json:"validation,omitempty"`
 	Required   bool              `json:"required,omitempty"`
+	Opetions   []string          `json:"options,omitempty"`
 	Properties map[string]string `json:"properties,omitempty"`
 	Error      string            `json:"error,omitempty"`
 }

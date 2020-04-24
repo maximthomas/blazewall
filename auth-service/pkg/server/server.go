@@ -5,10 +5,19 @@ import (
 	"github.com/maximthomas/blazewall/auth-service/pkg/config"
 	"github.com/maximthomas/blazewall/auth-service/pkg/repo"
 	"github.com/maximthomas/blazewall/auth-service/pkg/server/controller"
+	cors "github.com/rs/cors/wrapper/gin"
 )
 
 func setupRouter(auth config.Authentication) *gin.Engine {
 	router := gin.Default()
+
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowCredentials: true,
+		Debug:            true,
+	})
+
+	router.Use(c)
 
 	var loginController = controller.NewLoginController(auth, repo.NewInMemorySessionRepository())
 

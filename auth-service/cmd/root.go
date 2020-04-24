@@ -2,9 +2,10 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/maximthomas/blazewall/auth-service/pkg/config"
 	"github.com/maximthomas/blazewall/auth-service/pkg/server"
-	"os"
 
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
@@ -73,5 +74,6 @@ func initConfig() {
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
 		config.InitConfig()
+		fmt.Printf("config: %+v", config.GetConfig())
 	}
 }

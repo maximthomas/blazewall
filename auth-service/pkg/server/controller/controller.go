@@ -3,6 +3,7 @@ package controller
 import (
 	"encoding/json"
 	"errors"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/maximthomas/blazewall/auth-service/pkg/auth"
@@ -92,13 +93,13 @@ func (l LoginController) processAuthChain(authChain config.AuthChain, realm conf
 				}
 				c.SetCookie(auth.AuthCookieName, lss.SessionId, 0, "/", "", false, true)
 				c.JSON(200, cbReq)
-				break
+				return nil
 			case auth.Pass:
 				continue
 			case auth.Fail:
 				c.SetCookie(auth.AuthCookieName, "", 0, "/", "", false, true)
 				c.JSON(401, gin.H{"status": "fail"})
-				break
+				return nil
 			}
 
 		}
@@ -124,6 +125,9 @@ func (l LoginController) processAuthChain(authChain config.AuthChain, realm conf
 }
 
 func getLoginSessionIdFromRequest(c *gin.Context) string {
+	if c.Request.Method == "GET" { //for get request create new session
+		return ""
+	}
 	sessionCookie, err := c.Request.Cookie(auth.AuthCookieName)
 	if err == nil {
 		return sessionCookie.Value

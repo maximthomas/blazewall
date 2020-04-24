@@ -3,16 +3,20 @@ package repo
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/maximthomas/blazewall/auth-service/pkg/models"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/maximthomas/blazewall/auth-service/pkg/models"
 )
 
 type UserRepository interface {
 	GetUser(id string) (models.User, bool)
 	ValidatePassword(id, password string) bool
+	CreateUser(user models.User) (models.User, error)
+	UpdateUser(user models.User) error
+	SetPassword(id, password string) error
 }
 
 type UserRestRepository struct {
@@ -94,6 +98,17 @@ func (ur *UserRestRepository) ValidatePassword(id, password string) (valid bool)
 	return valid
 }
 
+func (ur *UserRestRepository) CreateUser(user models.User) (models.User, error) {
+	return user, nil
+}
+
+func (ur *UserRestRepository) UpdateUser(user models.User) error {
+	return nil
+}
+func (ur *UserRestRepository) SetPassword(id, password string) error {
+	return nil
+}
+
 func NewUserRestRepository(realm, endpoint string) UserRestRepository {
 	return UserRestRepository{
 		realm:    realm,
@@ -122,6 +137,17 @@ func (ur InMemoryUserRepository) ValidatePassword(id, password string) (valid bo
 		valid = true
 	}
 	return valid
+}
+
+func (ur InMemoryUserRepository) CreateUser(user models.User) (models.User, error) {
+	return user, nil
+}
+
+func (ur InMemoryUserRepository) UpdateUser(user models.User) error {
+	return nil
+}
+func (ur InMemoryUserRepository) SetPassword(id, password string) error {
+	return nil
 }
 
 func NewInMemoryUserRepository() UserRepository {
