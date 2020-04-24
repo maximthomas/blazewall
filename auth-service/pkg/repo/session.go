@@ -3,21 +3,20 @@ package repo
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
+	"github.com/google/uuid"
+	"github.com/maximthomas/blazewall/auth-service/pkg/models"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
-
-	_ "github.com/maximthomas/blazewall/auth-service/pkg/config"
-
-	"github.com/google/uuid"
-
-	"github.com/maximthomas/blazewall/auth-service/models"
 )
 
 type SessionRepository interface {
 	CreateSession(session models.Session) (models.Session, error)
-	DeleteSession(sessionID string) error
+	DeleteSession(id string) error
+	GetSession(id string) (models.Session, error)
+	UpdateSession(id string, session models.Session) error
 }
 
 type RestSessionRepository struct {
@@ -54,8 +53,8 @@ func (sr *RestSessionRepository) CreateSession(session models.Session) (models.S
 	return newSession, err
 }
 
-func (sr *RestSessionRepository) DeleteSession(sessionID string) error {
-	req, err := http.NewRequest("DELETE", sr.Endpoint+"/"+sessionID, nil)
+func (sr *RestSessionRepository) DeleteSession(id string) error {
+	req, err := http.NewRequest("DELETE", sr.Endpoint+"/"+id, nil)
 	if err != nil {
 		return err
 	}
@@ -64,29 +63,62 @@ func (sr *RestSessionRepository) DeleteSession(sessionID string) error {
 	return err
 }
 
-type DummySessionRepository struct {
-}
-
-func (sr *DummySessionRepository) CreateSession(session models.Session) (models.Session, error) {
-	session.ID = uuid.New().String()
-	return session, nil
-}
-
-func (sr *DummySessionRepository) DeleteSession(sessionID string) error {
+func (sr *RestSessionRepository) UpdateSession(id string, session models.Session) error {
 	return nil
 }
 
-var sr SessionRepository
+type InMemorySessionRepository struct {
+	sessions map[string]models.Session
+}
 
-func InitSessionRepo() {
+func (sr *InMemorySessionRepository) CreateSession(session models.Session) (models.Session, error) {
+	if session.ID == "" {
+		session.ID = uuid.New().String()
+	}
+	sr.sessions[session.ID] = session
+	return session, nil
+}
+
+func (sr *InMemorySessionRepository) DeleteSession(id string) error {
+	if _, ok := sr.sessions[id]; ok {
+		delete(sr.sessions, id)
+		return nil
+	} else {
+		return errors.New("session does not exist")
+	}
+}
+
+func (sr *InMemorySessionRepository) GetSession(id string) (models.Session, error) {
+	if session, ok := sr.sessions[id]; ok {
+		return session, nil
+	} else {
+		return models.Session{}, errors.New("session does not exist")
+	}
+}
+
+func (sr *InMemorySessionRepository) UpdateSession(id string, session models.Session) error {
+	if _, ok := sr.sessions[id]; ok {
+		sr.sessions[id] = session
+		return nil
+	} else {
+		return errors.New("session does not exist")
+	}
+}
+
+func NewSessionRepository() SessionRepository {
 	//ac := config.GetConfig()
 	//sr = &RestSessionRepository{Endpoint: ac.Endpoints.SessionService}
 	local := os.Getenv("DEV_LOCAL")
 	if local == "true" {
-		sr = &DummySessionRepository{}
+		return &InMemorySessionRepository{
+			sessions: make(map[string]models.Session),
+		}
 	}
+	return nil
 }
 
-func GetSessionRepo() SessionRepository {
-	return sr
+func NewInMemorySessionRepository() SessionRepository {
+	return &InMemorySessionRepository{
+		sessions: make(map[string]models.Session),
+	}
 }

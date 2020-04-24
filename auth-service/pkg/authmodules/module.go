@@ -1,1 +1,50 @@
 package authmodules
+
+import (
+	"errors"
+	"github.com/gin-gonic/gin"
+	"github.com/maximthomas/blazewall/auth-service/pkg/auth"
+	"github.com/maximthomas/blazewall/auth-service/pkg/config"
+	"github.com/maximthomas/blazewall/auth-service/pkg/models"
+	"github.com/maximthomas/blazewall/auth-service/pkg/repo"
+)
+
+type AuthModule interface {
+	Process(s *auth.LoginSessionState, c *gin.Context) (ms auth.ModuleState, cbs []models.Callback, err error)
+	ProcessCallbacks(inCbs []models.Callback, s *auth.LoginSessionState, c *gin.Context) (ms auth.ModuleState, cbs []models.Callback, err error)
+}
+
+func GetAuthModule(moduleType string, properties map[string]string, r config.Realm, sr repo.SessionRepository) (*LoginPassword, error) {
+	base := BaseAuthModule{
+		properties: properties,
+		r:          r,
+		sr:         sr,
+	}
+	switch moduleType {
+	case "login":
+		return NewLoginModule(base), nil
+	default:
+		return nil, errors.New("module does not exists")
+	}
+}
+
+type BaseAuthModule struct {
+	properties map[string]string
+	r          config.Realm
+	sr         repo.SessionRepository
+	callbacks  []models.Callback
+}
+
+func (b BaseAuthModule) ValidateCallbacks(cbs []models.Callback) error {
+	err := errors.New("callbacks does not match")
+	if len(cbs) == len(b.callbacks) {
+		for i, _ := range cbs {
+			if cbs[i].Type != b.callbacks[i].Type || cbs[i].Name != cbs[i].Name {
+				return err
+			}
+		}
+		return nil
+	} else {
+		return err
+	}
+}

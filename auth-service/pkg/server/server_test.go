@@ -1,1 +1,199 @@
 package server
+
+import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"github.com/maximthomas/blazewall/auth-service/pkg/auth"
+	"github.com/maximthomas/blazewall/auth-service/pkg/config"
+	"github.com/maximthomas/blazewall/auth-service/pkg/models"
+	"github.com/maximthomas/blazewall/auth-service/pkg/repo"
+	"github.com/prometheus/common/log"
+	"github.com/stretchr/testify/assert"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+)
+
+var (
+	authConf = config.Authentication{
+		Realms: map[string]config.Realm{
+			"staff": {Modules: map[string]config.Module{
+				"login": {Type: "login"},
+			},
+				AuthChains: map[string]config.AuthChain{
+					"default": {Modules: []config.ChainModule{
+						{
+							ID: "login",
+						},
+					}},
+					"sso": {Modules: []config.ChainModule{}},
+				},
+				UserRepo: repo.NewInMemoryUserRepository(),
+			},
+			"users": {Modules: nil,
+				AuthChains: map[string]config.AuthChain{
+					"default":  {Modules: []config.ChainModule{}},
+					"register": {Modules: []config.ChainModule{}},
+				},
+				UserRepo: repo.NewInMemoryUserRepository(),
+			},
+		},
+	}
+	router = setupRouter(authConf)
+)
+
+func TestSetupRouter(t *testing.T) {
+	assert.Equal(t, 2, len(router.Routes()))
+}
+
+const target = "http://localhost/auth-service/v1/login/staff/default"
+
+func TestLogin(t *testing.T) {
+	t.Run("Test not existing realm", func(t *testing.T) {
+		request := httptest.NewRequest("GET", "http://localhost/auth-service/v1/login/staff/bad", nil)
+		recorder := httptest.NewRecorder()
+		router.ServeHTTP(recorder, request)
+		assert.Equal(t, 404, recorder.Result().StatusCode)
+		var respJson = make(map[string]interface{})
+		err := json.Unmarshal([]byte(recorder.Body.String()), &respJson)
+		assert.NoError(t, err)
+		assert.Equal(t, "auth chain not found", respJson["error"])
+
+	})
+
+	t.Run("Test start authentication", func(t *testing.T) {
+		request := httptest.NewRequest("GET", target, nil)
+		recorder := httptest.NewRecorder()
+
+		router.ServeHTTP(recorder, request)
+		assert.Equal(t, 200, recorder.Result().StatusCode)
+		cbReq := &models.CallbackRequest{}
+		err := json.Unmarshal([]byte(recorder.Body.String()), cbReq)
+		assert.NoError(t, err)
+		recorder.Result().Header = recorder.Header()
+		cookieVal, err := getCookieValue(auth.AuthCookieName, recorder.Result().Cookies())
+
+		assert.NoError(t, err)
+		assert.Equal(t, "login", cbReq.Module)
+		assert.NotEmpty(t, cookieVal)
+	})
+
+	t.Run("Test bad credentials", func(t *testing.T) {
+
+		request := httptest.NewRequest("GET", target, nil)
+		recorder := httptest.NewRecorder()
+
+		router.ServeHTTP(recorder, request)
+		assert.Equal(t, 200, recorder.Result().StatusCode)
+		cbReq := &models.CallbackRequest{}
+		err := json.Unmarshal([]byte(recorder.Body.String()), cbReq)
+		assert.NoError(t, err)
+		recorder.Result().Header = recorder.Header()
+		cookieVal, err := getCookieValue(auth.AuthCookieName, recorder.Result().Cookies())
+		assert.NoError(t, err)
+		assert.Equal(t, "login", cbReq.Module)
+
+		log.Info("bad login and password")
+		for i, _ := range cbReq.Callbacks {
+			(&cbReq.Callbacks[i]).Value = "bad"
+		}
+		body, _ := json.Marshal(cbReq)
+		request = httptest.NewRequest("POST", target, bytes.NewBuffer(body))
+		authCookie := &http.Cookie{
+			Name:  auth.AuthCookieName,
+			Value: cookieVal,
+		}
+		request.AddCookie(authCookie)
+		recorder = httptest.NewRecorder()
+		router.ServeHTTP(recorder, request)
+		err = json.Unmarshal([]byte(recorder.Body.String()), cbReq)
+		assert.NoError(t, err)
+		assert.Equal(t, "Invalid username or password", cbReq.Callbacks[0].Error)
+	})
+
+	t.Run("Test bad data", func(t *testing.T) {
+		request := httptest.NewRequest("GET", target, nil)
+		recorder := httptest.NewRecorder()
+
+		router.ServeHTTP(recorder, request)
+		assert.Equal(t, 200, recorder.Result().StatusCode)
+		cbReq := &models.CallbackRequest{}
+		err := json.Unmarshal([]byte(recorder.Body.String()), cbReq)
+		assert.NoError(t, err)
+		recorder.Result().Header = recorder.Header()
+		cookieVal, err := getCookieValue(auth.AuthCookieName, recorder.Result().Cookies())
+		assert.NoError(t, err)
+		assert.Equal(t, "login", cbReq.Module)
+
+		request = httptest.NewRequest("POST", target, bytes.NewBuffer([]byte("bad body")))
+		authCookie := &http.Cookie{
+			Name:  auth.AuthCookieName,
+			Value: cookieVal,
+		}
+		request.AddCookie(authCookie)
+		recorder = httptest.NewRecorder()
+		router.ServeHTTP(recorder, request)
+		var respJson = make(map[string]interface{})
+		err = json.Unmarshal([]byte(recorder.Body.String()), &respJson)
+		assert.NoError(t, err)
+		assert.Equal(t, "bad request", respJson["error"])
+		assert.Equal(t, 400, recorder.Result().StatusCode)
+	})
+
+	t.Run("Test successful authentication", func(t *testing.T) {
+		request := httptest.NewRequest("GET", target, nil)
+		recorder := httptest.NewRecorder()
+
+		router.ServeHTTP(recorder, request)
+		assert.Equal(t, 200, recorder.Result().StatusCode)
+		cbReq := &models.CallbackRequest{}
+		err := json.Unmarshal([]byte(recorder.Body.String()), cbReq)
+		assert.NoError(t, err)
+		recorder.Result().Header = recorder.Header()
+		cookieVal, err := getCookieValue(auth.AuthCookieName, recorder.Result().Cookies())
+		assert.NoError(t, err)
+		assert.Equal(t, "login", cbReq.Module)
+
+		recorder.Result().Header = recorder.HeaderMap
+		newCookieVal, _ := getCookieValue(auth.AuthCookieName, recorder.Result().Cookies())
+		assert.Equal(t, cookieVal, newCookieVal)
+
+		authCookie := &http.Cookie{
+			Name:  auth.AuthCookieName,
+			Value: cookieVal,
+		}
+
+		(&cbReq.Callbacks[0]).Value = "user1"
+		(&cbReq.Callbacks[1]).Value = "password"
+
+		log.Info("valid login and password")
+		body, _ := json.Marshal(cbReq)
+		request = httptest.NewRequest("POST", target, bytes.NewBuffer(body))
+		request.AddCookie(authCookie)
+		recorder = httptest.NewRecorder()
+		router.ServeHTTP(recorder, request)
+
+		var respJson = make(map[string]interface{})
+		json.Unmarshal([]byte(recorder.Body.String()), &respJson)
+		log.Info(recorder.Result())
+		assert.NoError(t, err)
+		sessionCookie, err := getCookieValue(auth.SessionCookieName, recorder.Result().Cookies())
+		assert.NoError(t, err)
+		assert.NotEqual(t, "", sessionCookie)
+		assert.Equal(t, "success", respJson["status"])
+
+	})
+}
+
+//helper functions
+
+func getCookieValue(name string, c []*http.Cookie) (string, error) {
+
+	for _, cookie := range c {
+		if cookie.Name == name {
+			return cookie.Value, nil
+		}
+	}
+	return "", errors.New("cookie not found")
+}

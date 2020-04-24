@@ -3,27 +3,27 @@ package repo
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/maximthomas/blazewall/auth-service/pkg/models"
 	"io/ioutil"
 	"log"
 	"net/http"
-
-	"github.com/maximthomas/blazewall/auth-service/models"
+	"os"
 )
 
-type UserService interface {
-	GetUser(realm, id string) (models.User, bool)
-	ValidatePassword(realm, id, password string) bool
+type UserRepository interface {
+	GetUser(id string) (models.User, bool)
+	ValidatePassword(id, password string) bool
 }
 
-type UserRestService struct {
+type UserRestRepository struct {
 	realm    string
 	endpoint string
 	client   http.Client
 }
 
-func (us *UserRestService) GetUser(realm, id string) (user models.User, exists bool) {
+func (ur *UserRestRepository) GetUser(id string) (user models.User, exists bool) {
 
-	resp, err := us.client.Get(us.endpoint + "/users/" + realm + "/" + id)
+	resp, err := ur.client.Get(ur.endpoint + "/users/" + id)
 	if err != nil {
 		log.Printf("error getting user: %v", err)
 		return user, exists
@@ -51,7 +51,7 @@ func (us *UserRestService) GetUser(realm, id string) (user models.User, exists b
 	return user, exists
 }
 
-func (us *UserRestService) ValidatePassword(realm, id, password string) (valid bool) {
+func (ur *UserRestRepository) ValidatePassword(id, password string) (valid bool) {
 
 	pr := models.Password{
 		Password: password,
@@ -63,7 +63,7 @@ func (us *UserRestService) ValidatePassword(realm, id, password string) (valid b
 	}
 
 	buf := bytes.NewBuffer(prBytes)
-	resp, err := us.client.Post(us.endpoint+"/users/"+realm+"/"+id+"/validatepassword", "application/json", buf)
+	resp, err := ur.client.Post(ur.endpoint+"/users/"+id+"/validatepassword", "application/json", buf)
 	if err != nil {
 		log.Printf("error validating password: %v", err)
 		return valid
@@ -89,26 +89,26 @@ func (us *UserRestService) ValidatePassword(realm, id, password string) (valid b
 	}
 	valid = vpr.Valid
 
-	log.Printf("password validation result for user: %v %v %v", realm, id, valid)
+	log.Printf("password validation result for user: %v %v", id, valid)
 
 	return valid
 }
 
-func GetUserRestService(realm, endpoint string) UserRestService {
-	return UserRestService{
+func NewUserRestRepository(realm, endpoint string) UserRestRepository {
+	return UserRestRepository{
 		realm:    realm,
 		endpoint: endpoint,
 	}
 }
 
-type DummyUserService struct {
+type InMemoryUserRepository struct {
 	Users []models.User
 	Realm string
 }
 
-func (us DummyUserService) GetUser(realm, id string) (user models.User, exists bool) {
-	for _, u := range us.Users {
-		if u.Realm == realm && u.ID == id {
+func (ur InMemoryUserRepository) GetUser(id string) (user models.User, exists bool) {
+	for _, u := range ur.Users {
+		if u.ID == id {
 			user = u
 			exists = true
 			break
@@ -117,16 +117,16 @@ func (us DummyUserService) GetUser(realm, id string) (user models.User, exists b
 	return user, exists
 }
 
-func (us DummyUserService) ValidatePassword(realm, id, password string) (valid bool) {
-	if password == "pass" {
+func (ur InMemoryUserRepository) ValidatePassword(id, password string) (valid bool) {
+	if password == "password" {
 		valid = true
 	}
 	return valid
 }
 
-func NewDummyUserService() UserService {
+func NewInMemoryUserRepository() UserRepository {
 
-	ds := DummyUserService{}
+	ds := InMemoryUserRepository{}
 	ds.Users = []models.User{
 		{
 			ID:    "user1",
@@ -145,4 +145,14 @@ func NewDummyUserService() UserService {
 		},
 	}
 	return ds
+}
+
+func NewUserRepository() UserRepository {
+	//ac := config.GetConfig()
+	//sr = &RestSessionRepository{Endpoint: ac.Endpoints.SessionService}
+	local := os.Getenv("DEV_LOCAL")
+	if local == "true" {
+		return NewInMemoryUserRepository()
+	}
+	return nil
 }

@@ -136,7 +136,7 @@ And check if the protected service can be accessed via gateway `http://example.c
 
 ### Configure **auth-service**
 
-Create or modify the auth-service yaml configuration in `auth-config.yaml` file. You can find a configuration sample in [auth-config-test.yaml](./auth-service/config/auth-config-test.yaml):
+Create or modify the auth-service yaml configuration in `auth-config.yaml` file. You can find a configuration sample in [auth-config-test.yaml](auth-service/pkg/config/auth-config-test.yaml):
 
 ```yaml
 realms: #set of realms

@@ -9,6 +9,6 @@ USER appuser
 COPY --from=builder /build/main /app/
 ADD ./static/ /app/static
 ADD ./templates/ /app/templates
-ADD ./config/auth-config.yaml /app/config/auth-config.yaml
+ADD pkg/config /app/config/auth-config.yaml
 WORKDIR /app
 CMD ["./main", "-yc", "./config/auth-config.yaml"]

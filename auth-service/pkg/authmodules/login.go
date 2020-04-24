@@ -2,47 +2,61 @@ package authmodules
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/maximthomas/blazewall/auth-service/pkg/auth"
 	"github.com/maximthomas/blazewall/auth-service/pkg/models"
 )
 
-type LoginModule struct {
-	properties map[string]string
-	callbacks []models.Callback
+type LoginPassword struct {
+	BaseAuthModule
 }
 
-func (lm *LoginModule) Init(c *gin.Context) error {
+func (lm *LoginPassword) Init(c *gin.Context) error {
 	return nil
 }
-func (lm *LoginModule) Process(s *LoginSessionState, c *gin.Context) (ms ModuleState, cbs []models.Callback, err error) {
-	return InProgress, lm.callbacks, err
+func (lm *LoginPassword) Process(lss *auth.LoginSessionState, c *gin.Context) (ms auth.ModuleState, cbs []models.Callback, err error) {
+	return auth.InProgress, lm.callbacks, err
 }
 
-func (lm *LoginModule) ProcessCallbacks(inCbs []models.Callback, s *LoginSessionState, c *gin.Context) (ms ModuleState, cbs []models.Callback, err error) {
-	if c.Request.Method == "POST" {
-		cbr := models.CallbackRequest{}
-		err := c.ShouldBindJSON(&cbr)
-		if err != nil {
-			return ms, cbs, err
+func (lm *LoginPassword) ProcessCallbacks(inCbs []models.Callback, lss *auth.LoginSessionState, c *gin.Context) (ms auth.ModuleState, cbs []models.Callback, err error) {
+	var username string
+	var password string
+
+	for _, cb := range inCbs {
+		switch cb.Name {
+		case "login":
+			username = cb.Value
+			break
+		case "password":
+			password = cb.Value
 		}
-		s.SharedState["test"] = "test"
 	}
-	return Pass, cbs, err
+
+	valid := lm.r.UserRepo.ValidatePassword(username, password)
+	if valid {
+		lss.UserId = username
+		return auth.Pass, cbs, err
+	} else {
+		cbs = lm.callbacks
+		(&cbs[0]).Error = "Invalid username or password"
+		return auth.InProgress, cbs, err
+	}
+
 }
 
-func NewLoginModule(properties map[string]string) *LoginModule {
-	return &LoginModule{
-		properties: properties,
-		callbacks: []models.Callback{
-			{
-				Name:  "login",
-				Type:  "text",
-				Value: "",
-			},
-			{
-				Name:  "password",
-				Type:  "password",
-				Value: "",
-			},
+func NewLoginModule(base BaseAuthModule) *LoginPassword {
+	(&base).callbacks = []models.Callback{
+		{
+			Name:  "login",
+			Type:  "text",
+			Value: "",
 		},
+		{
+			Name:  "password",
+			Type:  "password",
+			Value: "",
+		},
+	}
+	return &LoginPassword{
+		base,
 	}
 }
