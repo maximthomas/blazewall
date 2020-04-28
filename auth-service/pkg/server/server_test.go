@@ -2,18 +2,26 @@ package server
 
 import (
 	"bytes"
+	"crypto/rand"
+	"crypto/rsa"
 	"encoding/json"
 	"errors"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	"github.com/dgrijalva/jwt-go"
+
 	"github.com/maximthomas/blazewall/auth-service/pkg/auth"
 	"github.com/maximthomas/blazewall/auth-service/pkg/config"
 	"github.com/maximthomas/blazewall/auth-service/pkg/models"
 	"github.com/maximthomas/blazewall/auth-service/pkg/repo"
 	"github.com/prometheus/common/log"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 )
+
+var privateKey, _ = rsa.GenerateKey(rand.Reader, 1024)
+var publicKey = &privateKey.PublicKey
 
 var (
 	authConf = config.Authentication{
@@ -30,6 +38,16 @@ var (
 					"sso": {Modules: []config.ChainModule{}},
 				},
 				UserRepo: repo.NewInMemoryUserRepository(),
+				Session: config.Session{
+					Type:    "stateless",
+					Expires: 60000,
+					Jwt: config.SessionJWT{
+						Issuer:       "http://auth-service",
+						PrivateKey:   privateKey,
+						PublicKey:    publicKey,
+						PrivateKeyID: "dummy",
+					},
+				},
 			},
 			"users": {Modules: nil,
 				AuthChains: map[string]config.AuthChain{
@@ -180,8 +198,18 @@ func TestLogin(t *testing.T) {
 		assert.NoError(t, err)
 		sessionCookie, err := getCookieValue(auth.SessionCookieName, recorder.Result().Cookies())
 		assert.NoError(t, err)
-		assert.NotEqual(t, "", sessionCookie)
+		assert.NotEmpty(t, sessionCookie)
 		assert.Equal(t, "success", respJson["status"])
+
+		claims := jwt.MapClaims{}
+		token, err := jwt.ParseWithClaims(sessionCookie, claims, func(token *jwt.Token) (interface{}, error) {
+			return publicKey, nil
+		})
+		assert.NoError(t, err)
+		assert.NotNil(t, token)
+
+		assert.Equal(t, "dummy", token.Header["jks"])
+		assert.Equal(t, "user1", claims["sub"])
 
 	})
 }

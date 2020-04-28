@@ -3,7 +3,10 @@ package controller
 import (
 	"encoding/json"
 	"errors"
+	"math/rand"
+	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/maximthomas/blazewall/auth-service/pkg/auth"
@@ -212,14 +215,31 @@ func (l LoginController) createSession(lss *auth.LoginSessionState, realm config
 	if user, ok = realm.UserRepo.GetUser(lss.UserId); !ok {
 		return sessId, errors.New("user dos not exist in repo")
 	}
-	newSession := models.Session{
-		ID:     uuid.New().String(),
-		UserID: user.ID,
-		Realm:  realm.ID,
+	var sessionID string
+	if realm.Session.Type == "stateless" {
+		token := jwt.New(jwt.SigningMethodRS256)
+		claims := token.Claims.(jwt.MapClaims)
+		expSeconds := time.Second * time.Duration(rand.Intn(realm.Session.Expires))
+		claims["exp"] = time.Now().Add(expSeconds).Unix()
+		claims["jti"] = realm.Session.Jwt.PrivateKeyID
+		claims["iat"] = time.Now().Unix()
+		claims["iss"] = realm.Session.Jwt.Issuer
+		claims["sub"] = lss.UserId
+
+		token.Header["jks"] = realm.Session.Jwt.PrivateKeyID
+		ss, _ := token.SignedString(realm.Session.Jwt.PrivateKey)
+		sessionID = ss
+	} else {
+		sessionID = uuid.New().String()
+		newSession := models.Session{
+			ID:     sessionID,
+			UserID: user.ID,
+			Realm:  realm.ID,
+		}
+		newSession, err = l.sr.CreateSession(newSession)
+		if err != nil {
+			return sessId, err
+		}
 	}
-	newSession, err = l.sr.CreateSession(newSession)
-	if err != nil {
-		return sessId, err
-	}
-	return newSession.ID, nil
+	return sessionID, nil
 }
