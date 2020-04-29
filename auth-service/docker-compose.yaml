@@ -1,0 +1,7 @@
+version: '3'
+services:
+  openldap:
+    image: kazhar/openldap-demo
+    ports:
+      - "50389:389"
+  

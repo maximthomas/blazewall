@@ -2,17 +2,41 @@ package controller
 
 import (
 	"bytes"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+	"time"
+
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/maximthomas/blazewall/auth-service/pkg/auth"
 	"github.com/maximthomas/blazewall/auth-service/pkg/config"
 	"github.com/maximthomas/blazewall/auth-service/pkg/repo"
 	"github.com/prometheus/common/log"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 )
+
+var privateKey, _ = rsa.GenerateKey(rand.Reader, 1024)
+var publicKey = &privateKey.PublicKey
+
+var privateKeyStr = string(pem.EncodeToMemory(
+	&pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
+	},
+))
+
+var publicKeyStr = string(pem.EncodeToMemory(
+	&pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PublicKey(publicKey),
+	},
+))
 
 var (
 	ac = config.Authentication{
@@ -30,6 +54,15 @@ var (
 					"sso": {Modules: []config.ChainModule{}},
 				},
 				UserRepo: repo.NewInMemoryUserRepository(),
+				Session: config.Session{
+					Type:    "stateless",
+					Expires: 60000,
+					Jwt: config.SessionJWT{
+						Issuer:     "http://auth-service",
+						PrivateKey: privateKey,
+						PublicKey:  publicKey,
+					},
+				},
 			},
 		},
 	}
@@ -39,8 +72,8 @@ var (
 func TestControllerLoginByRealmChain(t *testing.T) {
 	var tests = []struct {
 		expectedStatus int
-		realmId        string
-		authChainId    string
+		realmID        string
+		authChainID    string
 	}{
 		{404, "clients", "users"},
 		{404, "staff", "users"},
@@ -52,7 +85,7 @@ func TestControllerLoginByRealmChain(t *testing.T) {
 			c, _ := gin.CreateTestContext(recorder)
 			c.Request = httptest.NewRequest("GET", "/login", nil)
 
-			lc.Login(tt.realmId, tt.authChainId, c)
+			lc.Login(tt.realmID, tt.authChainID, c)
 			assert.Equal(t, tt.expectedStatus, recorder.Result().StatusCode)
 			log.Info(recorder.Body.String())
 		})
@@ -106,4 +139,32 @@ func TestGetSessionState(t *testing.T) {
 		assert.Equal(t, "user1", lssUpdated.UserId)
 
 	})
+}
+
+func TestJWT(t *testing.T) {
+	privateKey, _ := rsa.GenerateKey(rand.Reader, 1024)
+	// Create the Claims
+	_ = &jwt.StandardClaims{
+		ExpiresAt: time.Now().Add(time.Minute * 1).Unix(),
+		Issuer:    "test",
+	}
+
+	token := jwt.New(jwt.SigningMethodRS256)
+	claims2 := token.Claims.(jwt.MapClaims)
+
+	claims2["exp"] = time.Now().Add(time.Hour * 72).Unix()
+	token.Header["jks"] = "test"
+	ss, _ := token.SignedString(privateKey)
+	fmt.Println(ss)
+
+	pemdata := string(pem.EncodeToMemory(
+		&pem.Block{
+			Type:  "RSA PRIVATE KEY",
+			Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
+		},
+	))
+
+	pemDataString := string(pemdata)
+	fmt.Println(pemDataString)
+
 }
