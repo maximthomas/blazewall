@@ -14,7 +14,7 @@ type AuthModule interface {
 	ProcessCallbacks(inCbs []models.Callback, s *auth.LoginSessionState, c *gin.Context) (ms auth.ModuleState, cbs []models.Callback, err error)
 }
 
-func GetAuthModule(moduleType string, properties map[string]string, r config.Realm, sr repo.SessionRepository) (*LoginPassword, error) {
+func GetAuthModule(moduleType string, properties map[string]interface{}, r config.Realm, sr repo.SessionRepository) (*LoginPassword, error) {
 	base := BaseAuthModule{
 		properties: properties,
 		r:          r,
@@ -29,7 +29,7 @@ func GetAuthModule(moduleType string, properties map[string]string, r config.Rea
 }
 
 type BaseAuthModule struct {
-	properties map[string]string
+	properties map[string]interface{}
 	r          config.Realm
 	sr         repo.SessionRepository
 	callbacks  []models.Callback

@@ -9,15 +9,36 @@ authentication:
           type: "otp"
           properties:
             driver: "smpp"
+        register:
+          type: "register"
+          properties:
+            additionalFileds:
+              - dataStore: "cn"
+                propmt: "Name"
 
       authChains:
         login:
           modules:
             - id: "login"
               properties:
-      datastore:
-        type: "inMemory"        
-      
+        register:
+          modules:
+            - id: "register"
+              properties:
+
+      userDataStore:
+        type: "ldap"
+        properties:
+          address:  "localhost:50389"
+          bindDN:   "cn=admin,dc=farawaygalaxy,dc=net"
+          password: "passw0rd"
+          baseDN:   "ou=users,dc=farawaygalaxy,dc=net"
+          objectClasses:
+            - "inetOrgPerson"
+          userAttributes:
+            - "cn"
+            - "sn"
+
       session:
         type: "stateless" #could be also stateful, implement later
         expires: 60000

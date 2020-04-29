@@ -20,10 +20,12 @@ import (
 type LoginController struct {
 	auth config.Authentication
 	sr   repo.SessionRepository
+	logger logrus.FieldLogger
 }
 
 func NewLoginController(auth config.Authentication, sr repo.SessionRepository) *LoginController {
-	return &LoginController{auth, sr}
+	logger := auth.Logger.WithField("module", "LoginController")
+	return &LoginController{auth, sr, logger}
 }
 
 func (l LoginController) Login(realmId string, authChainId string, c *gin.Context) {
@@ -69,7 +71,7 @@ func (l LoginController) processAuthChain(authChain config.AuthChain, realm conf
 					var cbReq models.CallbackRequest
 					err := c.ShouldBindJSON(&cbReq)
 					if err != nil {
-						logrus.Error("error parsing request body: ", err)
+						l.logger.Error("error parsing request body: ", err)
 						return errors.New("bad request")
 					}
 					err = am.BaseAuthModule.ValidateCallbacks(cbReq.Callbacks)
@@ -168,7 +170,7 @@ func (l LoginController) getLoginSessionState(authChain config.AuthChain, realm 
 			lss.Modules[i].Id = chainModule.ID
 			realmModule := realm.Modules[chainModule.ID]
 			lss.Modules[i].Type = realmModule.Type
-			lss.Modules[i].Properties = make(map[string]string)
+			lss.Modules[i].Properties = make(map[string]interface{})
 			for k, v := range realmModule.Properties {
 				lss.Modules[i].Properties[k] = v
 			}
@@ -219,12 +221,13 @@ func (l LoginController) createSession(lss *auth.LoginSessionState, realm config
 	if realm.Session.Type == "stateless" {
 		token := jwt.New(jwt.SigningMethodRS256)
 		claims := token.Claims.(jwt.MapClaims)
-		expSeconds := time.Second * time.Duration(rand.Intn(realm.Session.Expires))
-		claims["exp"] = time.Now().Add(expSeconds).Unix()
+		exp := time.Second * time.Duration(rand.Intn(realm.Session.Expires))
+		claims["exp"] = time.Now().Add(exp).Unix()
 		claims["jti"] = realm.Session.Jwt.PrivateKeyID
 		claims["iat"] = time.Now().Unix()
 		claims["iss"] = realm.Session.Jwt.Issuer
 		claims["sub"] = lss.UserId
+		claims["props"] = user.Properties
 
 		token.Header["jks"] = realm.Session.Jwt.PrivateKeyID
 		ss, _ := token.SignedString(realm.Session.Jwt.PrivateKey)

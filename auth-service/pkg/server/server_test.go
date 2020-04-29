@@ -6,6 +6,7 @@ import (
 	"crypto/rsa"
 	"encoding/json"
 	"errors"
+	"github.com/sirupsen/logrus"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -22,7 +23,14 @@ import (
 
 var privateKey, _ = rsa.GenerateKey(rand.Reader, 1024)
 var publicKey = &privateKey.PublicKey
-
+var ur = &repo.UserLdapRepository{
+	Address:  "localhost:50389",
+	BindDN:   "cn=admin,dc=farawaygalaxy,dc=net",
+	Password: "passw0rd",
+	BaseDN:   "ou=users,dc=farawaygalaxy,dc=net",
+	ObjectClasses:  []string{"inetOrgPerson"},
+	UserAttributes: []string{"sn", "cn"},
+}
 var (
 	authConf = config.Authentication{
 		Realms: map[string]config.Realm{
@@ -37,7 +45,7 @@ var (
 					}},
 					"sso": {Modules: []config.ChainModule{}},
 				},
-				UserRepo: repo.NewInMemoryUserRepository(),
+				UserRepo: ur,
 				Session: config.Session{
 					Type:    "stateless",
 					Expires: 60000,
@@ -49,14 +57,8 @@ var (
 					},
 				},
 			},
-			"users": {Modules: nil,
-				AuthChains: map[string]config.AuthChain{
-					"default":  {Modules: []config.ChainModule{}},
-					"register": {Modules: []config.ChainModule{}},
-				},
-				UserRepo: repo.NewInMemoryUserRepository(),
-			},
 		},
+		Logger: logrus.New(),
 	}
 	router = setupRouter(authConf)
 )
@@ -182,8 +184,11 @@ func TestLogin(t *testing.T) {
 			Value: cookieVal,
 		}
 
-		(&cbReq.Callbacks[0]).Value = "user1"
-		(&cbReq.Callbacks[1]).Value = "password"
+		var login ="jerso"
+		var password = "passw0rd"
+
+		(&cbReq.Callbacks[0]).Value = login
+		(&cbReq.Callbacks[1]).Value = password
 
 		log.Info("valid login and password")
 		body, _ := json.Marshal(cbReq)
@@ -209,7 +214,7 @@ func TestLogin(t *testing.T) {
 		assert.NotNil(t, token)
 
 		assert.Equal(t, "dummy", token.Header["jks"])
-		assert.Equal(t, "user1", claims["sub"])
+		assert.Equal(t, login, claims["sub"])
 
 	})
 }

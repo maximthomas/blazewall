@@ -10,10 +10,12 @@ import (
 )
 
 var ur = UserLdapRepository{
-	Address:  "localhost:50389",
-	BindDN:   "cn=admin,dc=farawaygalaxy,dc=net",
-	Password: "passw0rd",
-	BaseDN:   "ou=users,dc=farawaygalaxy,dc=net",
+	Address:        "localhost:50389",
+	BindDN:         "cn=admin,dc=farawaygalaxy,dc=net",
+	Password:       "passw0rd",
+	BaseDN:         "ou=users,dc=farawaygalaxy,dc=net",
+	ObjectClasses:  []string{"inetOrgPerson"},
+	UserAttributes: []string{"sn", "cn"},
 }
 
 func TestLdapConnection(t *testing.T) {

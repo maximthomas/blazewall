@@ -7,6 +7,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -65,6 +66,7 @@ var (
 				},
 			},
 		},
+		Logger: logrus.New(),
 	}
 	lc = NewLoginController(ac, repo.NewInMemorySessionRepository())
 )

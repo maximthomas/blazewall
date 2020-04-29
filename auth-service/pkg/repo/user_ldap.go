@@ -10,10 +10,12 @@ import (
 )
 
 type UserLdapRepository struct {
-	Address  string
-	BindDN   string
-	Password string
-	BaseDN   string
+	Address        string
+	BindDN         string
+	Password       string
+	BaseDN         string
+	ObjectClasses  []string
+	UserAttributes []string
 }
 
 func (ur *UserLdapRepository) getConnection() (*ldap.Conn, error) {
@@ -29,6 +31,7 @@ func (ur *UserLdapRepository) getConnection() (*ldap.Conn, error) {
 }
 
 func (ur *UserLdapRepository) getLdapEntry(id string, conn *ldap.Conn) (*ldap.Entry, error) {
+	fields := append([]string{"dn", "uid"}, ur.UserAttributes...)
 	result, err := conn.Search(ldap.NewSearchRequest(
 		ur.BaseDN,
 		ldap.ScopeSingleLevel,
@@ -36,8 +39,8 @@ func (ur *UserLdapRepository) getLdapEntry(id string, conn *ldap.Conn) (*ldap.En
 		0,
 		100,
 		false,
-		fmt.Sprintf("(&(objectClass=person)(uid=%v))", id),
-		[]string{"dn", "uid"},
+		fmt.Sprintf("(uid=%v)", id),
+		fields,
 		nil,
 	))
 	if err != nil {
@@ -53,7 +56,6 @@ func (ur *UserLdapRepository) getLdapEntry(id string, conn *ldap.Conn) (*ldap.En
 }
 
 func (ur *UserLdapRepository) GetUser(id string) (user models.User, exists bool) {
-
 	conn, err := ur.getConnection()
 	if err != nil {
 		log.Fatal(err)
@@ -67,8 +69,14 @@ func (ur *UserLdapRepository) GetUser(id string) (user models.User, exists bool)
 		return user, exists
 	}
 
+	properties := make(map[string]string)
+	for _, attr := range ur.UserAttributes {
+		properties[attr] = entry.GetAttributeValue(attr)
+	}
+
 	user = models.User{
 		ID: entry.GetAttributeValue("uid"),
+		Properties: properties,
 	}
 	exists = true
 
@@ -104,7 +112,7 @@ func (ur *UserLdapRepository) CreateUser(user models.User) (models.User, error) 
 	defer conn.Close()
 	dn := fmt.Sprintf("uid=%v,"+ur.BaseDN, user.ID)
 	addRequest := ldap.NewAddRequest(dn, nil)
-	addRequest.Attribute("objectClass", []string{"inetOrgPerson"})
+	addRequest.Attribute("objectClass", ur.ObjectClasses)
 	addRequest.Attribute("sn", []string{user.ID})
 	addRequest.Attribute("cn", []string{user.ID})
 	err = conn.Add(addRequest)

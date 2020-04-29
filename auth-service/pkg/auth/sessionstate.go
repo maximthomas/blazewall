@@ -10,7 +10,7 @@ type LoginSessionState struct {
 type LoginSessionStateModuleInfo struct {
 	Id          string
 	Type        string
-	Properties  map[string]string
+	Properties  map[string]interface{}
 	State       ModuleState
 	SharedState map[string]string
 }

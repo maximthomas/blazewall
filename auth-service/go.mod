@@ -8,6 +8,7 @@ require (
 	github.com/golang/protobuf v1.3.5 // indirect
 	github.com/google/uuid v1.1.1
 	github.com/mitchellh/go-homedir v1.1.0
+	github.com/mitchellh/mapstructure v1.1.2
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/prometheus/common v0.4.0
 	github.com/rs/cors v1.7.0
