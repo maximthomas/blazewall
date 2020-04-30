@@ -1,0 +1,23 @@
+body {
+  font-family: system-ui;
+  background-color: #6262de;
+}
+
+#login-app {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+    background-color: #3c3cdb;
+    color: white;
+    padding: 10px;
+
+    h1 {
+        text-align: center;
+    }
+
+    input {
+      display: block;
+      padding: 3px;
+      margin: 5px;
+    }
+}
