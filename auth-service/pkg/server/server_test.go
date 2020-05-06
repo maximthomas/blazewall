@@ -6,10 +6,11 @@ import (
 	"crypto/rsa"
 	"encoding/json"
 	"errors"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/dgrijalva/jwt-go"
 
@@ -24,10 +25,10 @@ import (
 var privateKey, _ = rsa.GenerateKey(rand.Reader, 1024)
 var publicKey = &privateKey.PublicKey
 var ur = &repo.UserLdapRepository{
-	Address:  "localhost:50389",
-	BindDN:   "cn=admin,dc=farawaygalaxy,dc=net",
-	Password: "passw0rd",
-	BaseDN:   "ou=users,dc=farawaygalaxy,dc=net",
+	Address:        "localhost:50389",
+	BindDN:         "cn=admin,dc=farawaygalaxy,dc=net",
+	Password:       "passw0rd",
+	BaseDN:         "ou=users,dc=farawaygalaxy,dc=net",
 	ObjectClasses:  []string{"inetOrgPerson"},
 	UserAttributes: []string{"sn", "cn"},
 }
@@ -35,7 +36,8 @@ var (
 	authConf = config.Authentication{
 		Realms: map[string]config.Realm{
 			"staff": {Modules: map[string]config.Module{
-				"login": {Type: "login"},
+				"login":    {Type: "login"},
+				"kerberos": {Type: "kerberos"},
 			},
 				AuthChains: map[string]config.AuthChain{
 					"default": {Modules: []config.ChainModule{
@@ -43,7 +45,11 @@ var (
 							ID: "login",
 						},
 					}},
-					"sso": {Modules: []config.ChainModule{}},
+					"kerberos": {Modules: []config.ChainModule{
+						{
+							ID: "kerberos",
+						},
+					}},
 				},
 				UserRepo: ur,
 				Session: config.Session{
@@ -184,7 +190,7 @@ func TestLogin(t *testing.T) {
 			Value: cookieVal,
 		}
 
-		var login ="jerso"
+		var login = "jerso"
 		var password = "passw0rd"
 
 		(&cbReq.Callbacks[0]).Value = login
@@ -220,7 +226,6 @@ func TestLogin(t *testing.T) {
 }
 
 //helper functions
-
 func getCookieValue(name string, c []*http.Cookie) (string, error) {
 
 	for _, cookie := range c {

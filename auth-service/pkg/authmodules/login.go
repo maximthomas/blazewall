@@ -13,6 +13,7 @@ type LoginPassword struct {
 func (lm *LoginPassword) Init(c *gin.Context) error {
 	return nil
 }
+
 func (lm *LoginPassword) Process(lss *auth.LoginSessionState, c *gin.Context) (ms auth.ModuleState, cbs []models.Callback, err error) {
 	return auth.InProgress, lm.callbacks, err
 }
@@ -40,7 +41,10 @@ func (lm *LoginPassword) ProcessCallbacks(inCbs []models.Callback, lss *auth.Log
 		(&cbs[0]).Error = "Invalid username or password"
 		return auth.InProgress, cbs, err
 	}
+}
 
+func (lm *LoginPassword) ValidateCallbacks(cbs []models.Callback) error {
+	return lm.BaseAuthModule.ValidateCallbacks(cbs)
 }
 
 func NewLoginModule(base BaseAuthModule) *LoginPassword {

@@ -4,8 +4,9 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
-	"github.com/mitchellh/mapstructure"
 	"log"
+
+	"github.com/mitchellh/mapstructure"
 
 	"github.com/google/uuid"
 
@@ -16,7 +17,6 @@ import (
 )
 
 type Config struct {
-	
 }
 
 type Authentication struct {

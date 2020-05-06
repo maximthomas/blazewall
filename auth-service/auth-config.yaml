@@ -9,6 +9,9 @@ authentication:
           type: "otp"
           properties:
             driver: "smpp"
+        kerberos:
+          type: "kerberos"
+          properties:
         register:
           type: "register"
           properties:
@@ -24,6 +27,10 @@ authentication:
         register:
           modules:
             - id: "register"
+              properties:
+        kerberos:
+          modules:
+            - id: "kerberos"
               properties:
 
       userDataStore:

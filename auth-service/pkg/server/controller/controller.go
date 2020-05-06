@@ -18,8 +18,8 @@ import (
 )
 
 type LoginController struct {
-	auth config.Authentication
-	sr   repo.SessionRepository
+	auth   config.Authentication
+	sr     repo.SessionRepository
 	logger logrus.FieldLogger
 }
 
@@ -74,7 +74,7 @@ func (l LoginController) processAuthChain(authChain config.AuthChain, realm conf
 						l.logger.Error("error parsing request body: ", err)
 						return errors.New("bad request")
 					}
-					err = am.BaseAuthModule.ValidateCallbacks(cbReq.Callbacks)
+					err = am.ValidateCallbacks(cbReq.Callbacks)
 					if err != nil {
 						return err
 					}

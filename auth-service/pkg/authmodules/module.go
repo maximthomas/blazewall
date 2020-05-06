@@ -2,6 +2,7 @@ package authmodules
 
 import (
 	"errors"
+
 	"github.com/gin-gonic/gin"
 	"github.com/maximthomas/blazewall/auth-service/pkg/auth"
 	"github.com/maximthomas/blazewall/auth-service/pkg/config"
@@ -12,9 +13,10 @@ import (
 type AuthModule interface {
 	Process(s *auth.LoginSessionState, c *gin.Context) (ms auth.ModuleState, cbs []models.Callback, err error)
 	ProcessCallbacks(inCbs []models.Callback, s *auth.LoginSessionState, c *gin.Context) (ms auth.ModuleState, cbs []models.Callback, err error)
+	ValidateCallbacks(cbs []models.Callback) error
 }
 
-func GetAuthModule(moduleType string, properties map[string]interface{}, r config.Realm, sr repo.SessionRepository) (*LoginPassword, error) {
+func GetAuthModule(moduleType string, properties map[string]interface{}, r config.Realm, sr repo.SessionRepository) (AuthModule, error) {
 	base := BaseAuthModule{
 		properties: properties,
 		r:          r,
@@ -23,6 +25,8 @@ func GetAuthModule(moduleType string, properties map[string]interface{}, r confi
 	switch moduleType {
 	case "login":
 		return NewLoginModule(base), nil
+	case "kerberos":
+		return NewKerberosModule(base), nil
 	default:
 		return nil, errors.New("module does not exists")
 	}

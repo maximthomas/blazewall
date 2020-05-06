@@ -58,7 +58,7 @@ func (ur *UserLdapRepository) getLdapEntry(id string, conn *ldap.Conn) (*ldap.En
 func (ur *UserLdapRepository) GetUser(id string) (user models.User, exists bool) {
 	conn, err := ur.getConnection()
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 		return user, exists
 	}
 	defer conn.Close()
@@ -75,7 +75,7 @@ func (ur *UserLdapRepository) GetUser(id string) (user models.User, exists bool)
 	}
 
 	user = models.User{
-		ID: entry.GetAttributeValue("uid"),
+		ID:         entry.GetAttributeValue("uid"),
 		Properties: properties,
 	}
 	exists = true
