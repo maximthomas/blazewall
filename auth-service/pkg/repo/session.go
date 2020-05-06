@@ -16,7 +16,7 @@ type SessionRepository interface {
 	CreateSession(session models.Session) (models.Session, error)
 	DeleteSession(id string) error
 	GetSession(id string) (models.Session, error)
-	UpdateSession(id string, session models.Session) error
+	UpdateSession(session models.Session) error
 }
 
 type RestSessionRepository struct {
@@ -96,9 +96,9 @@ func (sr *InMemorySessionRepository) GetSession(id string) (models.Session, erro
 	}
 }
 
-func (sr *InMemorySessionRepository) UpdateSession(id string, session models.Session) error {
-	if _, ok := sr.sessions[id]; ok {
-		sr.sessions[id] = session
+func (sr *InMemorySessionRepository) UpdateSession(session models.Session) error {
+	if _, ok := sr.sessions[session.ID]; ok {
+		sr.sessions[session.ID] = session
 		return nil
 	} else {
 		return errors.New("session does not exist")

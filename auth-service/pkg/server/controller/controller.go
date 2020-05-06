@@ -198,7 +198,7 @@ func (l LoginController) updateLoginSessionState(lss *auth.LoginSessionState) er
 		session.Properties["lss"] = string(sessionProp)
 		_, err = l.sr.CreateSession(session)
 	} else {
-		err = l.sr.UpdateSession(lss.SessionId, session)
+		err = l.sr.UpdateSession(session)
 	}
 	if err != nil {
 		return err
@@ -213,10 +213,8 @@ func (l LoginController) createSession(lss *auth.LoginSessionState, realm config
 		return sessId, errors.New("user id is not set")
 	}
 	var user models.User
-	var ok bool
-	if user, ok = realm.UserRepo.GetUser(lss.UserId); !ok {
-		return sessId, errors.New("user dos not exist in repo")
-	}
+	user, userExists := realm.UserRepo.GetUser(lss.UserId)
+
 	var sessionID string
 	if realm.Session.Type == "stateless" {
 		token := jwt.New(jwt.SigningMethodRS256)
@@ -227,7 +225,9 @@ func (l LoginController) createSession(lss *auth.LoginSessionState, realm config
 		claims["iat"] = time.Now().Unix()
 		claims["iss"] = realm.Session.Jwt.Issuer
 		claims["sub"] = lss.UserId
-		claims["props"] = user.Properties
+		if userExists {
+			claims["props"] = user.Properties
+		}
 
 		token.Header["jks"] = realm.Session.Jwt.PrivateKeyID
 		ss, _ := token.SignedString(realm.Session.Jwt.PrivateKey)
@@ -235,9 +235,11 @@ func (l LoginController) createSession(lss *auth.LoginSessionState, realm config
 	} else {
 		sessionID = uuid.New().String()
 		newSession := models.Session{
-			ID:     sessionID,
-			UserID: user.ID,
-			Realm:  realm.ID,
+			ID: sessionID,
+			Properties: map[string]string{
+				"userId": user.ID,
+				"realm":  realm.ID,
+			},
 		}
 		newSession, err = l.sr.CreateSession(newSession)
 		if err != nil {
