@@ -31,11 +31,25 @@ func NewMongoSessionRepository(uri, db, c string) (*MongoSessionRepository, erro
 	if err != nil {
 		return nil, err
 	}
-	return &MongoSessionRepository{
+	idxOpt := options.Index()
+	idxOpt.SetExpireAfterSeconds(60 * 60 * 24)
+	mod := mongo.IndexModel{
+		Keys: bson.M{
+			"createdAt": 1, // index in ascending order
+		}, Options: idxOpt,
+	}
+
+	rep := &MongoSessionRepository{
 		client:     client,
 		db:         db,
 		collection: c,
-	}, nil
+	}
+
+	_, err = rep.getCollection().Indexes().CreateOne(ctx, mod)
+	if err != nil {
+		return nil, err
+	}
+	return rep, nil
 
 }
 
@@ -43,9 +57,13 @@ func (sr *MongoSessionRepository) CreateSession(session models.Session) (models.
 	if session.ID == "" {
 		session.ID = uuid.New().String()
 	}
+
+	session.CreatedAt = time.Now()
+
 	repoSession := mongoRepoSession{
 		Session: session,
 	}
+
 	collection := sr.getCollection()
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()

@@ -13,7 +13,7 @@ import (
 const testSessionID = "c48abbfc-93f9-46d6-b568-5a9d8394a156"
 
 func TestGetSession(t *testing.T) {
-	repo := getRepo(t)
+	repo := getRepo(t, true)
 	t.Run("test get session", func(t *testing.T) {
 		sess, err := repo.GetSession(testSessionID)
 		assert.NoError(t, err)
@@ -27,7 +27,8 @@ func TestGetSession(t *testing.T) {
 }
 
 func TestCreateSession(t *testing.T) {
-	repo := getRepo(t)
+	getRepo(t, true)
+	repo := getRepo(t, false)
 	t.Run("test create session", func(t *testing.T) {
 		session := models.Session{
 			Properties: map[string]string{
@@ -41,7 +42,7 @@ func TestCreateSession(t *testing.T) {
 }
 
 func TestDeleteSession(t *testing.T) {
-	repo := getRepo(t)
+	repo := getRepo(t, true)
 	t.Run("test delete session", func(t *testing.T) {
 		_, err := repo.GetSession(testSessionID)
 		assert.NoError(t, err)
@@ -56,7 +57,7 @@ func TestDeleteSession(t *testing.T) {
 }
 
 func TestUpdateSession(t *testing.T) {
-	repo := getRepo(t)
+	repo := getRepo(t, true)
 	t.Run("test update session", func(t *testing.T) {
 		sess, err := repo.GetSession(testSessionID)
 		assert.NoError(t, err)
@@ -77,13 +78,23 @@ func TestUpdateSession(t *testing.T) {
 	})
 }
 
-func getRepo(t *testing.T) SessionRepository {
+func TestGepRepoMultipleTimes(t *testing.T) {
+	_, err := NewMongoSessionRepository("mongodb://root:example@localhost:27017", "test_sessions", "sessions")
+	assert.NoError(t, err)
+
+	_, err = NewMongoSessionRepository("mongodb://root:example@localhost:27017", "test_sessions", "sessions")
+	assert.NoError(t, err)
+}
+
+func getRepo(t *testing.T, drop bool) SessionRepository {
 	repo, err := NewMongoSessionRepository("mongodb://root:example@localhost:27017", "test_sessions", "sessions")
 	assert.NoError(t, err)
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
-	err = repo.client.Database(repo.db).Drop(ctx)
-	assert.NoError(t, err)
+	if drop {
+		err = repo.client.Database(repo.db).Drop(ctx)
+		assert.NoError(t, err)
+	}
 	session := models.Session{
 		ID: testSessionID,
 		Properties: map[string]string{
