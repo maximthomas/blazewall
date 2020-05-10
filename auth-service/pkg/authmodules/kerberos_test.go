@@ -56,8 +56,3 @@ func TestKerberos(t *testing.T) {
 	})
 
 }
-
-func TestSpnegoHeader(t *testing.T) {
-	_, err := getSpnegoHeader()
-	assert.NoError(t, err)
-}

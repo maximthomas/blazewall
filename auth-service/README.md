@@ -1,23 +1,26 @@
+# Authentication service
+
+Auth-Service is an API based authentication service, allows authentication to your site or service with minimum efforts. 
+Auth-service supports multiple authentication methods across various data sources.
+
+## Quick Start
+
+Create configuration file
+
+```yaml
 authentication:
   realms:
-    staff:
+    users:
       modules:
         login:
           type: "login"
-          properties:
-        otp:
-          type: "otp"
-          properties:
-            driver: "smpp"
-        kerberos:
-          type: "kerberos"
           properties:
         registration:
           type: "registration"
           properties:
             additionalFileds:
-              - dataStore: "cn"
-                prompt: "Name"
+              - dataStore: "name"
+                propmt: "Name"
 
       authChains:
         login:
@@ -28,30 +31,21 @@ authentication:
           modules:
             - id: "registration"
               properties:
-        kerberos:
-          modules:
-            - id: "kerberos"
-              properties:
 
       userDataStore:
-        type: "ldap"
+        type: "mongodb"
         properties:
-          address:  "localhost:50389"
-          bindDN:   "cn=admin,dc=farawaygalaxy,dc=net"
-          password: "passw0rd"
-          baseDN:   "ou=users,dc=farawaygalaxy,dc=net"
-          objectClasses:
-            - "inetOrgPerson"
+          url:  "mongodb://root:example@localhost:27017"
+          database:   "users"
+          collection: "users"
           userAttributes:
-            - "cn"
-            - "sn"
+            - "name"
 
       session:
-        type: "stateless" #could be also stateful, implement later
+        type: "stateless"
         expires: 60000
         jwt:
-          issuer: 'http://auth-service'
-          
+          issuer: 'https://auth-service'
           privateKeyPem: |
             -----BEGIN RSA PRIVATE KEY-----
             MIIBOQIBAAJATmLeD2qa5ejVKJ3rwcSJaZAeRw4CVrUHvi1uVvBah6+6qCdjvH8N
@@ -62,6 +56,24 @@ authentication:
             iU9srFFwmlMCIFPUbMixqHUHi6BzuLDXpDz15+gWarO3Io+NoCCUFbdBAiEAinVf
             Lnb+YDP3L5ZzSNF92P9yBQaopFCifjrUqSS85uw=
             -----END RSA PRIVATE KEY-----
-        
+
+```
+ 
+## Authentication methods
+* Username and password
+* Registration
+* Kerberos
+
+## Supported Data Sources
+* LDAP
+* SQL databases
+    * PostgreSQL
+    * MySQL
+* NoSQL
+    * MongoDB
+    
 
 
+
+
+ 

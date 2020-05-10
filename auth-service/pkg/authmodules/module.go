@@ -25,6 +25,8 @@ func GetAuthModule(moduleType string, properties map[string]interface{}, r confi
 	switch moduleType {
 	case "login":
 		return NewLoginModule(base), nil
+	case "registration":
+		return NewRegistrationModule(base), nil
 	case "kerberos":
 		return NewKerberosModule(base), nil
 	default:

@@ -79,15 +79,15 @@ func TestUpdateSession(t *testing.T) {
 }
 
 func TestGepRepoMultipleTimes(t *testing.T) {
-	_, err := NewMongoSessionRepository("mongodb://root:example@localhost:27017", "test_sessions", "sessions")
+	_, err := NewMongoSessionRepository("mongodb://root:changeme@localhost:27017", "test_sessions", "sessions")
 	assert.NoError(t, err)
 
-	_, err = NewMongoSessionRepository("mongodb://root:example@localhost:27017", "test_sessions", "sessions")
+	_, err = NewMongoSessionRepository("mongodb://root:changeme@localhost:27017", "test_sessions", "sessions")
 	assert.NoError(t, err)
 }
 
 func getRepo(t *testing.T, drop bool) SessionRepository {
-	repo, err := NewMongoSessionRepository("mongodb://root:example@localhost:27017", "test_sessions", "sessions")
+	repo, err := NewMongoSessionRepository("mongodb://root:changeme@localhost:27017", "test_sessions", "sessions")
 	assert.NoError(t, err)
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
