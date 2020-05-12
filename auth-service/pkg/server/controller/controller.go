@@ -23,8 +23,10 @@ type LoginController struct {
 	logger logrus.FieldLogger
 }
 
-func NewLoginController(auth config.Authentication, sr repo.SessionRepository) *LoginController {
-	logger := auth.Logger.WithField("module", "LoginController")
+func NewLoginController(config config.Config) *LoginController {
+	logger := config.Logger.WithField("module", "LoginController")
+	auth := config.Authentication
+	sr := config.Session.Repo
 	return &LoginController{auth, sr, logger}
 }
 

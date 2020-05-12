@@ -3,12 +3,11 @@ package server
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/maximthomas/blazewall/auth-service/pkg/config"
-	"github.com/maximthomas/blazewall/auth-service/pkg/repo"
 	"github.com/maximthomas/blazewall/auth-service/pkg/server/controller"
 	cors "github.com/rs/cors/wrapper/gin"
 )
 
-func setupRouter(auth config.Authentication) *gin.Engine {
+func setupRouter(conf config.Config) *gin.Engine {
 	router := gin.Default()
 
 	c := cors.New(cors.Options{
@@ -19,7 +18,7 @@ func setupRouter(auth config.Authentication) *gin.Engine {
 
 	router.Use(c)
 
-	var loginController = controller.NewLoginController(auth, repo.NewInMemorySessionRepository())
+	var loginController = controller.NewLoginController(conf)
 
 	v1 := router.Group("/auth-service/v1")
 	{

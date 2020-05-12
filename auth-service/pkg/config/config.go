@@ -17,11 +17,13 @@ import (
 )
 
 type Config struct {
+	Authentication Authentication
+	Session        SessionSettings
+	Logger         logrus.FieldLogger
 }
 
 type Authentication struct {
 	Realms map[string]Realm `yaml:"realms"`
-	Logger logrus.FieldLogger
 }
 
 type Realm struct {
@@ -66,16 +68,24 @@ type SessionJWT struct {
 	PublicKey     *rsa.PublicKey
 }
 
-var auth Authentication
+type SessionSettings struct {
+	Repo       repo.SessionRepository
+	Type       string
+	Properties map[string]string
+}
+
+var config Config
 
 func InitConfig() error {
 	logger := logrus.New()
 	//newLogger.SetFormatter(&logrus.JSONFormatter{})
 	//newLogger.SetReportCaller(true)
-	auth.Logger = logger
 	var configLogger = logger.WithField("module", "config")
 
-	err := viper.UnmarshalKey("authentication", &auth)
+	err := viper.Unmarshal(&config)
+	auth := &config.Authentication
+
+	config.Logger = logger
 	if err != nil { // Handle errors reading the config file
 		configLogger.Errorf("Fatal error config file: %s \n", err)
 		panic(err)
@@ -112,6 +122,10 @@ func InitConfig() error {
 	return nil
 }
 
-func GetConfig() Authentication {
-	return auth
+func GetAuthConfig() Authentication {
+	return config.Authentication
+}
+
+func GetConfig() Config {
+	return config
 }

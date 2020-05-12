@@ -1,8 +1,9 @@
 package cmd
 
 import (
-	"github.com/maximthomas/blazewall/auth-service/pkg/config"
 	"testing"
+
+	"github.com/maximthomas/blazewall/auth-service/pkg/config"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -12,8 +13,8 @@ func TestExecute(t *testing.T) {
 	rootCmd.SetArgs(args)
 	err := rootCmd.Execute()
 	assert.NoError(t, err)
-	ac := config.GetConfig()
-	r := ac.Realms["staff"]
+	conf := config.GetConfig()
+	r := conf.Authentication.Realms["staff"]
 	assert.True(t, len(r.AuthChains) > 0)
 
 }

@@ -7,7 +7,6 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -19,6 +18,7 @@ import (
 	"github.com/maximthomas/blazewall/auth-service/pkg/config"
 	"github.com/maximthomas/blazewall/auth-service/pkg/repo"
 	"github.com/prometheus/common/log"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -66,9 +66,17 @@ var (
 				},
 			},
 		},
-		Logger: logrus.New(),
 	}
-	lc = NewLoginController(ac, repo.NewInMemorySessionRepository())
+
+	conf = config.Config{
+		Authentication: ac,
+		Logger:         logrus.New(),
+		Session: config.SessionSettings{
+			Repo: repo.NewInMemorySessionRepository(),
+		},
+	}
+
+	lc = NewLoginController(conf)
 )
 
 func TestControllerLoginByRealmChain(t *testing.T) {

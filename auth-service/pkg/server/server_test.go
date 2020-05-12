@@ -64,9 +64,13 @@ var (
 				},
 			},
 		},
-		Logger: logrus.New(),
 	}
-	router = setupRouter(authConf)
+
+	conf = config.Config{
+		Authentication: authConf,
+		Logger:         logrus.New(),
+	}
+	router = setupRouter(conf)
 )
 
 func TestSetupRouter(t *testing.T) {

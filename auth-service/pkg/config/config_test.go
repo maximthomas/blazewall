@@ -14,9 +14,9 @@ func TestReadConfigFileViper(t *testing.T) {
 	err := viper.ReadInConfig()        // Find and read the config file
 	assert.NoError(t, err)
 	InitConfig()
-	ac := GetConfig()
-	assert.NotNil(t, ac)
-	r := auth.Realms["staff"]
+	conf := GetConfig()
+	assert.NotNil(t, conf.Authentication)
+	r := conf.Authentication.Realms["staff"]
 	assert.True(t, len(r.AuthChains) > 0)
 	assert.Equal(t, "staff", r.ID)
 	assert.NotEmpty(t, r.Session.Jwt.PrivateKeyPem)
