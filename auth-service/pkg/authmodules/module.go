@@ -45,7 +45,7 @@ func (b BaseAuthModule) ValidateCallbacks(cbs []models.Callback) error {
 	err := errors.New("callbacks does not match")
 	if len(cbs) == len(b.callbacks) {
 		for i, _ := range cbs {
-			if cbs[i].Type != b.callbacks[i].Type || cbs[i].Name != cbs[i].Name {
+			if cbs[i].Name != cbs[i].Name {
 				return err
 			}
 		}
