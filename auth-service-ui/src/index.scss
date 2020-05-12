@@ -1,5 +1,5 @@
 body {
-  font-family: system-ui;
+  font-family: roboto;
   background-color: #6262de;
 }
 
@@ -7,9 +7,13 @@ body {
     width: 100%;
     max-width: 400px;
     margin: 0 auto;
-    background-color: #3c3cdb;
-    color: white;
+    /*background-color: #3c3cdb;*/
+    color: white; 
     padding: 10px;
+
+    #auth-panel {
+      padding: 15px;
+    }
 
     h1 {
         text-align: center;
@@ -19,5 +23,13 @@ body {
       display: block;
       padding: 3px;
       margin: 5px;
+      width: 100%;
+      margin-top: 14px;
+    }
+
+    form {
+      button {
+        margin-top: 14px;
+      }
     }
 }

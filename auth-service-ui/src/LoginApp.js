@@ -1,8 +1,15 @@
 import React from 'react';
 import { Callbacks } from './Callbacks'
+import { ThemeProvider } from "@material-ui/styles";
+
+import {Paper, CssBaseline, createMuiTheme} from "@material-ui/core";
 
 const authUrl = process.env.REACT_APP_AUTH_URL
-
+const theme = createMuiTheme({
+    palette: {
+      type: "dark"
+    }
+  });
 export class LoginApp extends React.Component {
 
 
@@ -14,8 +21,6 @@ export class LoginApp extends React.Component {
             succeeded: false,
             failed: false,
         };
-        console.log(process.env);
-        //this.updateCallback = this.updateCallback.bind(this);
     }
     componentDidUpdate(prevProps, prevState) {
         console.log(prevState, this.state);
@@ -39,7 +44,8 @@ export class LoginApp extends React.Component {
                     this.setState({ module: data['module'] })
                 }
             }).catch(function(e) {
-                alert('Error connecting to a database')
+                //alert('Error connecting to a database')
+                console.log(e)
             });
         return []
     }
@@ -93,6 +99,7 @@ export class LoginApp extends React.Component {
     }
 
     render() {
+        
         var uiComponent;
         if (this.state.succeeded) {
             uiComponent = <h1>Authentication succeeded</h1>
@@ -103,8 +110,14 @@ export class LoginApp extends React.Component {
                 submitCallbacks={this.submitCallbacks}
                 updateCallback={this.updateCallback} />
         }
-        return <div id="login-app">
-            {uiComponent}
-        </div>
+        const app = <ThemeProvider theme={theme}>
+            <CssBaseline/>
+            <div id="login-app">
+                <Paper id="auth-panel" variant="outlined">
+                    {uiComponent}
+                </Paper>
+            </div>
+        </ThemeProvider>
+        return app;
     };
 }
