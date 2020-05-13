@@ -56,8 +56,11 @@ authentication:
             iU9srFFwmlMCIFPUbMixqHUHi6BzuLDXpDz15+gWarO3Io+NoCCUFbdBAiEAinVf
             Lnb+YDP3L5ZzSNF92P9yBQaopFCifjrUqSS85uw=
             -----END RSA PRIVATE KEY-----
-
 ```
+
+Then run docker-compose with the file
+
+
  
 ## Authentication methods
 * Username and password

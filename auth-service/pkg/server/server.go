@@ -3,7 +3,7 @@ package server
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/maximthomas/blazewall/auth-service/pkg/config"
-	"github.com/maximthomas/blazewall/auth-service/pkg/server/controller"
+	"github.com/maximthomas/blazewall/auth-service/pkg/controller"
 	cors "github.com/rs/cors/wrapper/gin"
 )
 
