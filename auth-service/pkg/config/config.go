@@ -112,7 +112,17 @@ func InitConfig() error {
 			mapstructure.Decode(prop, repo)
 			realm.UserDataStore.Repo = repo
 		} else if realm.UserDataStore.Type == "mongodb" {
-			panic("implement mongo user repository")
+			prop := realm.UserDataStore.Properties
+			params := make(map[string]string)
+			mapstructure.Decode(&prop, &params)
+			url, _ := params["url"]
+			db, _ := params["database"]
+			col, _ := params["collection"]
+			repo, err := repo.NewUserMongoRepository(url, db, col)
+			if err != nil {
+				panic(err)
+			}
+			realm.UserDataStore.Repo = repo
 		} else {
 			realm.UserDataStore.Repo = repo.NewInMemoryUserRepository()
 		}
