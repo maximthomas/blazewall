@@ -129,6 +129,21 @@ func InitConfig() error {
 		auth.Realms[id] = realm
 	}
 
+	if config.SessionDataStore.Type == "mongo" {
+		prop := config.SessionDataStore.Properties
+		params := make(map[string]string)
+		mapstructure.Decode(&prop, &params)
+		url, _ := params["url"]
+		db, _ := params["database"]
+		col, _ := params["collection"]
+		config.SessionDataStore.Repo, err = repo.NewMongoSessionRepository(url, db, col)
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		config.SessionDataStore.Repo = repo.NewInMemorySessionRepository()
+	}
+
 	configLogger.Infof("got configuration %+v", auth)
 
 	return nil
