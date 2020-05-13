@@ -26,7 +26,7 @@ type LoginController struct {
 func NewLoginController(config config.Config) *LoginController {
 	logger := config.Logger.WithField("module", "LoginController")
 	auth := config.Authentication
-	sr := config.Session.Repo
+	sr := config.SessionDataStore.Repo
 	return &LoginController{auth, sr, logger}
 }
 
@@ -215,7 +215,7 @@ func (l LoginController) createSession(lss *auth.LoginSessionState, realm config
 		return sessId, errors.New("user id is not set")
 	}
 	var user models.User
-	user, userExists := realm.UserRepo.GetUser(lss.UserId)
+	user, userExists := realm.UserDataStore.Repo.GetUser(lss.UserId)
 
 	var sessionID string
 	if realm.Session.Type == "stateless" {

@@ -41,7 +41,7 @@ func (rm *Registration) ProcessCallbacks(inCbs []models.Callback, lss *auth.Logi
 			(&errCbs[i]).Error = (&errCbs[i]).Prompt + " required"
 			callbacksValid = false
 		} else if i == 0 {
-			_, exists := rm.r.UserRepo.GetUser(cb.Value)
+			_, exists := rm.r.UserDataStore.Repo.GetUser(cb.Value)
 			if exists {
 				(&errCbs[i]).Error = "User exists"
 				callbacksValid = false
@@ -75,12 +75,12 @@ func (rm *Registration) ProcessCallbacks(inCbs []models.Callback, lss *auth.Logi
 		Properties: fields,
 	}
 
-	_, err = rm.r.UserRepo.CreateUser(user)
+	_, err = rm.r.UserDataStore.Repo.CreateUser(user)
 	if err != nil {
 		return auth.Fail, cbs, err
 	}
 
-	err = rm.r.UserRepo.SetPassword(user.ID, password)
+	err = rm.r.UserDataStore.Repo.SetPassword(user.ID, password)
 	if err != nil {
 		return auth.Fail, cbs, err
 	}

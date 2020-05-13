@@ -17,9 +17,9 @@ import (
 )
 
 type Config struct {
-	Authentication Authentication
-	Session        SessionSettings
-	Logger         logrus.FieldLogger
+	Authentication   Authentication
+	SessionDataStore SessionDataStore
+	Logger           logrus.FieldLogger
 }
 
 type Authentication struct {
@@ -31,8 +31,7 @@ type Realm struct {
 	Modules       map[string]Module    `yaml:"modules"`
 	AuthChains    map[string]AuthChain `yaml:"authChains"`
 	UserDataStore UserDataStore        `yaml:"userDataStore"`
-	UserRepo      repo.UserRepository
-	Session       Session `yaml:"session"`
+	Session       Session              `yaml:"session"`
 }
 
 type AuthChain struct {
@@ -42,6 +41,7 @@ type AuthChain struct {
 type UserDataStore struct {
 	Type       string                 `yaml:"type"`
 	Properties map[string]interface{} `yaml:"properties,omitempty"`
+	Repo       repo.UserRepository
 }
 
 type Module struct {
@@ -68,7 +68,7 @@ type SessionJWT struct {
 	PublicKey     *rsa.PublicKey
 }
 
-type SessionSettings struct {
+type SessionDataStore struct {
 	Repo       repo.SessionRepository
 	Type       string
 	Properties map[string]string
@@ -91,8 +91,8 @@ func InitConfig() error {
 		panic(err)
 	}
 	for id, realm := range auth.Realms {
-		realm.UserRepo = repo.NewInMemoryUserRepository()
 		realm.ID = id
+
 		if realm.Session.Type == "stateless" {
 			jwt := &realm.Session.Jwt
 			privateKeyBlock, _ := pem.Decode([]byte(jwt.PrivateKeyPem))
@@ -102,7 +102,6 @@ func InitConfig() error {
 				return err
 			}
 			jwt.PrivateKey = privateKey
-
 			jwt.PublicKey = &privateKey.PublicKey
 			jwt.PrivateKeyID = uuid.New().String()
 		}
@@ -111,12 +110,15 @@ func InitConfig() error {
 			prop := realm.UserDataStore.Properties
 			repo := &repo.UserLdapRepository{}
 			mapstructure.Decode(prop, repo)
-			realm.UserRepo = repo
+			realm.UserDataStore.Repo = repo
+		} else if realm.UserDataStore.Type == "mongodb" {
+			panic("implement mongo user repository")
 		} else {
-			realm.UserRepo = repo.NewInMemoryUserRepository()
+			realm.UserDataStore.Repo = repo.NewInMemoryUserRepository()
 		}
 		auth.Realms[id] = realm
 	}
+
 	configLogger.Infof("got configuration %+v", auth)
 
 	return nil

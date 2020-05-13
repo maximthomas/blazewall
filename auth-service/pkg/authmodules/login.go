@@ -32,7 +32,7 @@ func (lm *LoginPassword) ProcessCallbacks(inCbs []models.Callback, lss *auth.Log
 		}
 	}
 
-	valid := lm.r.UserRepo.ValidatePassword(username, password)
+	valid := lm.r.UserDataStore.Repo.ValidatePassword(username, password)
 	if valid {
 		lss.UserId = username
 		return auth.Pass, cbs, err

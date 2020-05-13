@@ -9,22 +9,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var ur = UserLdapRepository{
-	Address:        "localhost:50389",
-	BindDN:         "cn=admin,dc=farawaygalaxy,dc=net",
-	Password:       "passw0rd",
-	BaseDN:         "ou=users,dc=farawaygalaxy,dc=net",
-	ObjectClasses:  []string{"inetOrgPerson"},
-	UserAttributes: []string{"sn", "cn"},
-}
-
 func TestLdapConnection(t *testing.T) {
+	ur := getUserLdapRepository()
 	conn, err := ur.getConnection()
 	assert.NoError(t, err)
 	defer conn.Close()
 }
 
 func TestGetUser(t *testing.T) {
+	ur := getUserLdapRepository()
 	user, exists := ur.GetUser("jerso")
 	assert.True(t, exists)
 	assert.Equal(t, "jerso", user.ID)
@@ -34,6 +27,7 @@ func TestGetUser(t *testing.T) {
 }
 
 func TestValidatePassword(t *testing.T) {
+	ur := getUserLdapRepository()
 	tests := []struct {
 		name     string
 		user     string
@@ -54,6 +48,7 @@ func TestValidatePassword(t *testing.T) {
 }
 
 func TestCreateUser(t *testing.T) {
+	ur := getUserLdapRepository()
 	user := models.User{
 		ID: "user1",
 	}
@@ -65,6 +60,7 @@ func TestCreateUser(t *testing.T) {
 }
 
 func TestSetPassword(t *testing.T) {
+	ur := getUserLdapRepository()
 	var user = "jerso"
 	newPassword := "newPassw0rd"
 
@@ -83,4 +79,15 @@ func TestSetPassword(t *testing.T) {
 
 func TestModifyUser(t *testing.T) {
 	assert.Fail(t, "not implemented")
+}
+
+func getUserLdapRepository() *UserLdapRepository {
+	return &UserLdapRepository{
+		Address:        "localhost:50389",
+		BindDN:         "cn=admin,dc=farawaygalaxy,dc=net",
+		Password:       "passw0rd",
+		BaseDN:         "ou=users,dc=farawaygalaxy,dc=net",
+		ObjectClasses:  []string{"inetOrgPerson"},
+		UserAttributes: []string{"sn", "cn"},
+	}
 }

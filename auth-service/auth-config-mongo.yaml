@@ -46,3 +46,10 @@ authentication:
             iU9srFFwmlMCIFPUbMixqHUHi6BzuLDXpDz15+gWarO3Io+NoCCUFbdBAiEAinVf
             Lnb+YDP3L5ZzSNF92P9yBQaopFCifjrUqSS85uw=
             -----END RSA PRIVATE KEY-----
+
+sessionDataStore:
+  type: "mongo"
+  properties:
+    url: "mongodb://root:changeme@localhost:27017"
+    database:   "session"
+    collection: "session"

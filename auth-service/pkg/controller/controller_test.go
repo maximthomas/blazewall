@@ -71,7 +71,7 @@ var (
 	conf = config.Config{
 		Authentication: ac,
 		Logger:         logrus.New(),
-		Session: config.SessionSettings{
+		SessionDataStore: config.SessionDataStore{
 			Repo: repo.NewInMemorySessionRepository(),
 		},
 	}
@@ -118,7 +118,7 @@ func TestLoginPassword(t *testing.T) {
 }
 
 func TestGetSessionState(t *testing.T) {
-	t.Run("Test Get New Session State", func(t *testing.T) {
+	t.Run("Test Get New SessionDataStore State", func(t *testing.T) {
 		recorder := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(recorder)
 		c.Request = httptest.NewRequest("GET", "/login", nil)

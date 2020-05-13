@@ -63,7 +63,7 @@ authentication:
             Lnb+YDP3L5ZzSNF92P9yBQaopFCifjrUqSS85uw=
             -----END RSA PRIVATE KEY-----
 
-sessionRepository:
+sessionDataStore:
   type: "mongo"
   properties:
     url: "mongodb://root:changeme@localhost:27017"

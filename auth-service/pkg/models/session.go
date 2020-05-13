@@ -2,7 +2,7 @@ package models
 
 import "time"
 
-//Session struct represents session object from session service
+//SessionDataStore struct represents session object from session service
 type Session struct {
 	ID         string            `json:"id,omitempty"`
 	CreatedAt  time.Time         `json:"createdat,omitempty" bson:"createdAt"`

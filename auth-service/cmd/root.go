@@ -75,5 +75,7 @@ func initConfig() {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
 		config.InitConfig()
 		fmt.Printf("config: %+v", config.GetConfig())
+	} else {
+		er(err)
 	}
 }
