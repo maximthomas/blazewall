@@ -86,6 +86,8 @@ func (rm *Registration) ProcessCallbacks(inCbs []models.Callback, lss *auth.Logi
 		return auth.Fail, cbs, err
 	}
 
+	lss.UserId = user.ID
+
 	return auth.Pass, rm.callbacks, err
 }
 
