@@ -21,19 +21,20 @@ const (
 var b = BaseAuthModule{
 	properties: map[string]interface{}{
 		keyAdditionalFields: []AdditionalFiled{{
-			dataStore: "name",
-			prompt:    "Name",
-			required:  true,
+			DataStore: "name",
+			Prompt:    "Name",
+			Required:  true,
 		},
 		},
 	},
 	r: config.Realm{
-		ID:            "",
-		Modules:       nil,
-		AuthChains:    nil,
-		UserDataStore: config.UserDataStore{},
-		UserRepo:      repo.NewInMemoryUserRepository(),
-		Session:       config.Session{},
+		ID:         "",
+		Modules:    nil,
+		AuthChains: nil,
+		UserDataStore: config.UserDataStore{
+			Repo: repo.NewInMemoryUserRepository(),
+		},
+		Session: config.Session{},
 	},
 }
 
@@ -142,9 +143,9 @@ func TestRegistration_ProcessCallbacks(t *testing.T) {
 		status, _, err := rm.ProcessCallbacks(inCbs, lss, c)
 		assert.NoError(t, err)
 		assert.Equal(t, auth.Pass, status)
-		_, ok := rm.r.UserRepo.GetUser(userName)
+		_, ok := rm.r.UserDataStore.Repo.GetUser(userName)
 		assert.True(t, ok)
-		pValid := rm.r.UserRepo.ValidatePassword(userName, password)
+		pValid := rm.r.UserDataStore.Repo.ValidatePassword(userName, password)
 		assert.True(t, pValid)
 
 	})

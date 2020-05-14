@@ -90,7 +90,10 @@ func (l LoginController) processAuthChain(authChain config.AuthChain, realm conf
 			moduleInfo.State = newState
 
 			lss.UpdateModuleInfo(moduleIndex, moduleInfo)
-			l.updateLoginSessionState(lss)
+			err = l.updateLoginSessionState(lss)
+			if err != nil {
+				return err
+			}
 
 			switch moduleInfo.State {
 			case auth.InProgress, auth.Start:
@@ -187,7 +190,8 @@ func (l LoginController) getLoginSessionState(authChain config.AuthChain, realm 
 }
 
 func (l LoginController) updateLoginSessionState(lss *auth.LoginSessionState) error {
-	sessionProp, err := json.Marshal(lss)
+	lss.Modules[0].Properties = nil
+	sessionProp, err := json.Marshal(*lss)
 	if err != nil {
 		return err
 	}

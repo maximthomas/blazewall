@@ -10,7 +10,7 @@ authentication:
           properties:
             additionalFileds:
               - dataStore: "name"
-                propmt: "Name"
+                prompt: "Name"
 
       authChains:
         login:

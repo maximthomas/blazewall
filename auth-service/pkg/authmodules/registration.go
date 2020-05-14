@@ -5,11 +5,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/maximthomas/blazewall/auth-service/pkg/auth"
 	"github.com/maximthomas/blazewall/auth-service/pkg/models"
+	"github.com/mitchellh/mapstructure"
 	"reflect"
 )
 
 const (
-	keyAdditionalFields = "additionalFields"
+	keyAdditionalFields = "additionalfileds"
 )
 
 type Registration struct {
@@ -18,9 +19,9 @@ type Registration struct {
 }
 
 type AdditionalFiled struct {
-	dataStore string
-	prompt    string
-	required  bool
+	DataStore string
+	Prompt    string
+	Required  bool
 }
 
 func (rm *Registration) Process(lss *auth.LoginSessionState, c *gin.Context) (ms auth.ModuleState, cbs []models.Callback, err error) {
@@ -102,8 +103,9 @@ func NewRegistrationModule(base BaseAuthModule) *Registration {
 		afObj := reflect.ValueOf(af)
 		afs := make([]AdditionalFiled, afObj.Len())
 		for i := 0; i < afObj.Len(); i++ {
-			adf := afObj.Index(i).Interface().(AdditionalFiled)
-			afs[i] = adf
+			adf := &AdditionalFiled{}
+			mapstructure.Decode(afObj.Index(i).Interface(), adf)
+			afs[i] = *adf
 		}
 		rm.afs = afs
 	}
@@ -111,11 +113,11 @@ func NewRegistrationModule(base BaseAuthModule) *Registration {
 	if rm.afs != nil {
 		for i, af := range rm.afs {
 			adcbs[i+1] = models.Callback{
-				Name:     af.dataStore,
+				Name:     af.DataStore,
 				Type:     "text",
 				Value:    "",
-				Prompt:   af.prompt,
-				Required: af.required,
+				Prompt:   af.Prompt,
+				Required: af.Required,
 			}
 		}
 	}
