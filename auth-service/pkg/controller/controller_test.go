@@ -45,16 +45,36 @@ var (
 			"staff": {
 				Modules: map[string]config.Module{
 					"login": {Type: "login"},
+					"registration": {
+						Type: "registration",
+						Properties: map[string]interface{}{
+							"additionalFields": []map[interface{}]interface{}{{
+								"dataStore": "name",
+								"prompt":    "Name",
+							}},
+						},
+					},
 				},
+
 				AuthChains: map[string]config.AuthChain{
 					"default": {Modules: []config.ChainModule{
 						{
 							ID: "login",
 						},
 					}},
+					"register": {Modules: []config.ChainModule{
+						{
+							ID: "registration",
+							Properties: map[string]interface{}{
+								"testProp": "testVal",
+							},
+						},
+					}},
 					"sso": {Modules: []config.ChainModule{}},
 				},
-				UserRepo: repo.NewInMemoryUserRepository(),
+				UserDataStore: config.UserDataStore{
+					Repo: repo.NewInMemoryUserRepository(),
+				},
 				Session: config.Session{
 					Type:    "stateless",
 					Expires: 60000,
@@ -126,7 +146,7 @@ func TestGetSessionState(t *testing.T) {
 		assert.Equal(t, 1, len(lls.Modules))
 	})
 
-	t.Run("Test Get Existing State", func(t *testing.T) {
+	t.Run("Test Get Existing State Login", func(t *testing.T) {
 		recorder := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(recorder)
 		c.Request = httptest.NewRequest("GET", "/login", nil)
@@ -142,12 +162,36 @@ func TestGetSessionState(t *testing.T) {
 			Name:  auth.AuthCookieName,
 			Value: lss.SessionId,
 		}
-		cSecond.Request = httptest.NewRequest("GET", "/login", nil)
+		cSecond.Request = httptest.NewRequest("POST", "/login", nil)
 		cSecond.Request.AddCookie(authCookie)
 		lssUpdated := lc.getLoginSessionState(ac.Realms["staff"].AuthChains["default"], ac.Realms["staff"], cSecond)
 		assert.Equal(t, "value", lssUpdated.SharedState["key"])
 		assert.Equal(t, "user1", lssUpdated.UserId)
+	})
 
+	t.Run("Test Get Existing State Register", func(t *testing.T) {
+		recorder := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(recorder)
+		c.Request = httptest.NewRequest("GET", "/login", nil)
+		lss := lc.getLoginSessionState(ac.Realms["staff"].AuthChains["register"], ac.Realms["staff"], c)
+		assert.Equal(t, 2, len(lss.Modules[0].Properties))
+		assert.Equal(t, 1, len(lss.Modules))
+		lss.SharedState["key"] = "value"
+		lss.UserId = "user1"
+		err := lc.updateLoginSessionState(lss)
+		assert.NoError(t, err)
+
+		cSecond, _ := gin.CreateTestContext(recorder)
+		authCookie := &http.Cookie{
+			Name:  auth.AuthCookieName,
+			Value: lss.SessionId,
+		}
+		cSecond.Request = httptest.NewRequest("POST", "/login", nil)
+		cSecond.Request.AddCookie(authCookie)
+		lssUpdated := lc.getLoginSessionState(ac.Realms["staff"].AuthChains["register"], ac.Realms["staff"], cSecond)
+		assert.Equal(t, 2, len(lssUpdated.Modules[0].Properties))
+		assert.Equal(t, "value", lssUpdated.SharedState["key"])
+		assert.Equal(t, "user1", lssUpdated.UserId)
 	})
 }
 

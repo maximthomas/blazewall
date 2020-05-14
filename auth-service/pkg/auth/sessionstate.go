@@ -1,5 +1,14 @@
 package auth
 
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+	"reflect"
+)
+
+//import "encoding/json"
+
 type LoginSessionState struct {
 	Modules     []LoginSessionStateModuleInfo
 	SharedState map[string]string
@@ -10,9 +19,40 @@ type LoginSessionState struct {
 type LoginSessionStateModuleInfo struct {
 	Id          string
 	Type        string
-	Properties  map[string]interface{}
+	Properties  LoginSessionStateModuleProperties
 	State       ModuleState
 	SharedState map[string]string
+}
+
+type LoginSessionStateModuleProperties map[string]interface{}
+
+func (mp LoginSessionStateModuleProperties) MarshalJSON() ([]byte, error) {
+	var cp = make(map[string]interface{})
+	for k, v := range mp {
+		var m []byte
+		switch v.(type) {
+		case []map[interface{}]interface{}:
+			rVal := reflect.ValueOf(v)
+			mMaps := make([]map[string]string, rVal.Len())
+			for i := 0; i < rVal.Len(); i++ {
+				mMap := make(map[string]string)
+				iter := rVal.Index(i).MapRange()
+				for iter.Next() {
+					k := fmt.Sprintf("%v", iter.Key())
+					v := fmt.Sprintf("%v", iter.Value())
+					mMap[k] = v
+				}
+				mMaps[i] = mMap
+			}
+			cp[k] = mMaps
+		default:
+			cp[k] = v
+		}
+
+		str := fmt.Sprintf(`"%v": "%v"`, k, string(m))
+		log.Println(str)
+	}
+	return json.Marshal(cp)
 }
 
 func (l *LoginSessionState) UpdateModuleInfo(mIndex int, mInfo LoginSessionStateModuleInfo) {

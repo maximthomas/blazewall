@@ -175,7 +175,7 @@ func (l LoginController) getLoginSessionState(authChain config.AuthChain, realm 
 			lss.Modules[i].Id = chainModule.ID
 			realmModule := realm.Modules[chainModule.ID]
 			lss.Modules[i].Type = realmModule.Type
-			lss.Modules[i].Properties = make(map[string]interface{})
+			lss.Modules[i].Properties = make(auth.LoginSessionStateModuleProperties)
 			for k, v := range realmModule.Properties {
 				lss.Modules[i].Properties[k] = v
 			}
@@ -190,8 +190,8 @@ func (l LoginController) getLoginSessionState(authChain config.AuthChain, realm 
 }
 
 func (l LoginController) updateLoginSessionState(lss *auth.LoginSessionState) error {
-	lss.Modules[0].Properties = nil
 	sessionProp, err := json.Marshal(*lss)
+	l.logger.Info(string(sessionProp))
 	if err != nil {
 		return err
 	}
