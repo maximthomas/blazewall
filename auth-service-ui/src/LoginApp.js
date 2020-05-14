@@ -1,8 +1,8 @@
 import React from 'react';
-import { Callbacks } from './Callbacks'
-import { ThemeProvider } from "@material-ui/styles";
+import {Callbacks} from './Callbacks'
+import {ThemeProvider} from "@material-ui/styles";
 
-import {Paper, CssBaseline, Link, createMuiTheme} from "@material-ui/core";
+import {createMuiTheme, CssBaseline, Link, Paper} from "@material-ui/core";
 
 const signUpUrl = process.env.REACT_APP_SIGN_UP_URL
 const signInUrl = process.env.REACT_APP_SIGN_IN_URL
@@ -36,7 +36,7 @@ export class LoginApp extends React.Component {
             authState: signInState,
         };
     }
-    componentDidUpdate(prevProps, prevState) {
+    componentDidUpdate(prevProps, prevState, ss) {
         console.log(prevState, this.state);
     }
 
@@ -132,7 +132,7 @@ export class LoginApp extends React.Component {
                 submitCallbacks={this.submitCallbacks}
                 updateCallback={this.updateCallback} />
         }
-        const app = <ThemeProvider theme={theme}>
+        return <ThemeProvider theme={theme}>
             <CssBaseline/>
             <div id="login-app">
                 <Paper id="auth-panel" variant="outlined">
@@ -144,7 +144,6 @@ export class LoginApp extends React.Component {
                     </div>
                 </Paper>
             </div>
-        </ThemeProvider>
-        return app;
+        </ThemeProvider>;
     };
 }
