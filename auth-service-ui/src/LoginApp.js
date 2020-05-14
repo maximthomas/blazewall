@@ -2,16 +2,29 @@ import React from 'react';
 import { Callbacks } from './Callbacks'
 import { ThemeProvider } from "@material-ui/styles";
 
-import {Paper, CssBaseline, createMuiTheme} from "@material-ui/core";
+import {Paper, CssBaseline, Link, createMuiTheme} from "@material-ui/core";
 
-const authUrl = process.env.REACT_APP_AUTH_URL
+const signUpUrl = process.env.REACT_APP_SIGN_UP_URL
+const signInUrl = process.env.REACT_APP_SIGN_IN_URL
+
 const theme = createMuiTheme({
     palette: {
       type: "dark"
     }
   });
-export class LoginApp extends React.Component {
 
+class AuthState {
+    constructor(title, authUrl, linkTitle) {
+        this.title = title;
+        this.authUrl = authUrl;
+        this.linkTitle = linkTitle;
+    }
+}
+
+const signUpState = new AuthState("Sign Up", signUpUrl, "Sign In")
+const signInState = new AuthState("Sign In", signInUrl, "Sign Up")
+
+export class LoginApp extends React.Component {
 
     constructor(props) {
         super(props);
@@ -20,6 +33,7 @@ export class LoginApp extends React.Component {
             module: null,
             succeeded: false,
             failed: false,
+            authState: signInState,
         };
     }
     componentDidUpdate(prevProps, prevState) {
@@ -32,7 +46,7 @@ export class LoginApp extends React.Component {
 
 
     getCallbacks() {
-        fetch(authUrl, {
+        fetch(this.state.authState.authUrl, {
             credentials: "include",
         }).then((response) => {
             return response.json();
@@ -69,7 +83,7 @@ export class LoginApp extends React.Component {
             callbacks: callbacks,
         }
         const requestBody = JSON.stringify(request)
-        fetch(authUrl, {
+        fetch(this.state.authState.authUrl, {
             method: 'POST',
             body: requestBody,
             credentials: "include",
@@ -98,15 +112,23 @@ export class LoginApp extends React.Component {
         return false;
     }
 
+    switchAuthentication = () => {
+        if(this.state.authState === signInState) {
+            this.setState({authState: signUpState}, () =>this.getCallbacks());
+        } else {
+            this.setState({authState: signInState}, () => this.getCallbacks());
+        }
+    }
+
     render() {
-        
-        var uiComponent;
+
+        let uiComponent;
         if (this.state.succeeded) {
             uiComponent = <h1>Authentication succeeded</h1>
         } else if (this.state.failed) {
             uiComponent = <h1>Authentication failed</h1>
         } else {
-            uiComponent = <Callbacks callbacks={this.state.callbacks}
+            uiComponent = <Callbacks callbacks={this.state.callbacks} title={this.state.authState.title}
                 submitCallbacks={this.submitCallbacks}
                 updateCallback={this.updateCallback} />
         }
@@ -115,6 +137,11 @@ export class LoginApp extends React.Component {
             <div id="login-app">
                 <Paper id="auth-panel" variant="outlined">
                     {uiComponent}
+                    <div id="links">
+                        <Link id="auth-link" component="button" color="inherit" onClick={this.switchAuthentication}>
+                            {this.state.authState.linkTitle}
+                        </Link>
+                    </div>
                 </Paper>
             </div>
         </ThemeProvider>
