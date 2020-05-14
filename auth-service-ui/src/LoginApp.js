@@ -128,20 +128,21 @@ export class LoginApp extends React.Component {
         } else if (this.state.failed) {
             uiComponent = <h1>Authentication failed</h1>
         } else {
-            uiComponent = <Callbacks callbacks={this.state.callbacks} title={this.state.authState.title}
+            uiComponent =<div><Callbacks callbacks={this.state.callbacks} title={this.state.authState.title}
                 submitCallbacks={this.submitCallbacks}
                 updateCallback={this.updateCallback} />
+                <div id="links">
+                    <Link id="auth-link" component="button" color="inherit" onClick={this.switchAuthentication}>
+                        {this.state.authState.linkTitle}
+                    </Link>
+                </div>
+            </div>
         }
         return <ThemeProvider theme={theme}>
             <CssBaseline/>
             <div id="login-app">
                 <Paper id="auth-panel" variant="outlined">
                     {uiComponent}
-                    <div id="links">
-                        <Link id="auth-link" component="button" color="inherit" onClick={this.switchAuthentication}>
-                            {this.state.authState.linkTitle}
-                        </Link>
-                    </div>
                 </Paper>
             </div>
         </ThemeProvider>;
