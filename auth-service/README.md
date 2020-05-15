@@ -20,7 +20,7 @@ authentication:
           properties:
             additionalFileds:
               - dataStore: "name"
-                propmt: "Name"
+                prompt: "Name"
 
       authChains:
         login:
@@ -35,7 +35,7 @@ authentication:
       userDataStore:
         type: "mongodb"
         properties:
-          url:  "mongodb://root:example@localhost:27017"
+          url:  "mongodb://root:changeme@mongo:27017"
           database:   "users"
           collection: "users"
           userAttributes:
@@ -56,14 +56,13 @@ authentication:
             iU9srFFwmlMCIFPUbMixqHUHi6BzuLDXpDz15+gWarO3Io+NoCCUFbdBAiEAinVf
             Lnb+YDP3L5ZzSNF92P9yBQaopFCifjrUqSS85uw=
             -----END RSA PRIVATE KEY-----
+
 sessionDataStore:
   type: "mongo"
-  timeout: 3600
   properties:
-    url: "mongodb://root:changeme@localhost:27017"
+    url: "mongodb://root:changeme@mongo:27017"
     database:   "session"
     collection: "session"
-
 ```
 
 Then run docker-compose with the file

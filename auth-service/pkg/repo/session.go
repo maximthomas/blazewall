@@ -2,11 +2,12 @@ package repo
 
 import (
 	"errors"
-	"github.com/google/uuid"
-	"github.com/maximthomas/blazewall/auth-service/pkg/models"
 	"log"
 	"os"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/maximthomas/blazewall/auth-service/pkg/models"
 )
 
 type SessionRepository interface {
@@ -24,6 +25,7 @@ func (sr *InMemorySessionRepository) CreateSession(session models.Session) (mode
 	if session.ID == "" {
 		session.ID = uuid.New().String()
 	}
+	session.CreatedAt = time.Now()
 	sr.sessions[session.ID] = session
 	return session, nil
 }
