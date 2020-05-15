@@ -1,13 +1,3 @@
-# Authentication service
-
-Auth-Service is an API based authentication service, allows authentication to your site or service with minimum efforts. 
-Auth-service supports multiple authentication methods across various data sources.
-
-## Quick Start
-
-Create configuration file
-
-```yaml
 authentication:
   realms:
     users:
@@ -20,7 +10,7 @@ authentication:
           properties:
             additionalFileds:
               - dataStore: "name"
-                propmt: "Name"
+                prompt: "Name"
 
       authChains:
         login:
@@ -35,7 +25,7 @@ authentication:
       userDataStore:
         type: "mongodb"
         properties:
-          url:  "mongodb://root:example@localhost:27017"
+          url:  "mongodb://root:changeme@mongo:27017"
           database:   "users"
           collection: "users"
           userAttributes:
@@ -56,35 +46,10 @@ authentication:
             iU9srFFwmlMCIFPUbMixqHUHi6BzuLDXpDz15+gWarO3Io+NoCCUFbdBAiEAinVf
             Lnb+YDP3L5ZzSNF92P9yBQaopFCifjrUqSS85uw=
             -----END RSA PRIVATE KEY-----
+
 sessionDataStore:
   type: "mongo"
-  timeout: 3600
   properties:
-    url: "mongodb://root:changeme@localhost:27017"
+    url: "mongodb://root:changeme@mongo:27017"
     database:   "session"
     collection: "session"
-
-```
-
-Then run docker-compose with the file
-
-
- 
-## Authentication methods
-* Username and password
-* Registration
-* Kerberos
-
-## Supported Data Sources
-* LDAP
-* SQL databases
-    * PostgreSQL
-    * MySQL
-* NoSQL
-    * MongoDB
-    
-
-
-
-
- 
