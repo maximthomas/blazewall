@@ -49,7 +49,7 @@ export class LoginApp extends React.Component {
         fetch(this.state.authState.authUrl, {
             credentials: "include",
         }).then((response) => {
-            return response.json();
+                return response.json();
         }).then((data) => {
                 if (data['callbacks']) {
                     this.setState({ callbacks: data['callbacks'] });
@@ -57,9 +57,13 @@ export class LoginApp extends React.Component {
                 if (data['module']) {
                     this.setState({ module: data['module'] })
                 }
-            }).catch(function(e) {
-                //alert('Error connecting to a database')
+                if (data['error']) {
+                    console.log(data["error"])
+                    this.setState({ failed: true })
+                }
+            }).catch((e) => {
                 console.log(e)
+                this.setState({ failed: true })
             });
         return []
     }
