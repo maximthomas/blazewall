@@ -235,7 +235,7 @@ func getUserService() controllers.UserController {
 		RealmRepos: map[string]repo.UserRepository{"users": repo.NewInMemoryUserRepository()},
 	}
 	return controllers.GetUserControllerByUserServiceConfig(uc)
-	
+
 }
 
 func assertEqualJSON(t *testing.T, expected, actual string) bool {

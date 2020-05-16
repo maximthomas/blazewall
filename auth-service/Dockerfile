@@ -8,6 +8,6 @@ FROM alpine
 RUN adduser -S -D -H -h /app appuser
 USER appuser
 COPY --from=builder /build/main /app/
-ADD auth-config-mongo.yaml /app/config/auth-config.yaml
+ADD auth-config-docker.yaml /app/config/auth-config.yaml
 WORKDIR /app
 CMD ["./main", "--config", "./config/auth-config.yaml"]
