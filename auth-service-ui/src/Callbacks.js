@@ -13,7 +13,7 @@ export class Callbacks extends React.Component {
                            value={callback.value} required={callback.required}/>
             </div>)
         const submitBtn = <div><Button  variant="contained" type="submit" color="default">Proceed</Button></div>
-        const form = <form onSubmit={this.props.submitCallbacks}>{callbacks}{submitBtn}</form>
+        const form = <form onSubmit={this.props.submitCallbacks} autoComplete={"off"}>{callbacks}{submitBtn}</form>
         return <div><h1>{this.props.title}</h1>{form}</div>
     }
 }

@@ -1,11 +1,13 @@
 import React from 'react';
 import {Callbacks} from './Callbacks'
+import {Profile} from './Profile'
 import {ThemeProvider} from "@material-ui/styles";
 
 import {createMuiTheme, CssBaseline, Link, Paper} from "@material-ui/core";
 
 const signUpUrl = process.env.REACT_APP_SIGN_UP_URL
 const signInUrl = process.env.REACT_APP_SIGN_IN_URL
+
 
 const theme = createMuiTheme({
     palette: {
@@ -34,7 +36,7 @@ export class LoginApp extends React.Component {
             succeeded: false,
             failed: false,
             authState: signInState,
-        };
+        }
     }
     componentDidUpdate(prevProps, prevState, ss) {
         console.log(prevState, this.state);
@@ -102,13 +104,13 @@ export class LoginApp extends React.Component {
                     this.setState({ callbacks: data['callbacks'] });
                 }
                 if (data['module']) {
-                    this.setState({ module: data['module'] })
+                    this.setState({ module: data['module'] });
                 }
                 if (data["status"]) {
                     if (data["status"] === "success") {
-                        this.setState({ succeeded: true })
+                         this.setState({ succeeded: true } );
                     } else if (data["status"] === "failed") {
-                        this.setState({ failed: true })
+                        this.setState({ failed: true });
                     }
                 }
             });
@@ -125,10 +127,12 @@ export class LoginApp extends React.Component {
     }
 
     render() {
-
         let uiComponent;
         if (this.state.succeeded) {
-            uiComponent = <h1>Authentication succeeded</h1>
+            uiComponent = <div>
+                <h1>Authentication succeeded</h1>
+                <Profile/>
+            </div>
         } else if (this.state.failed) {
             uiComponent = <h1>Authentication failed</h1>
         } else {
