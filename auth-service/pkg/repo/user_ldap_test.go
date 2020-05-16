@@ -28,6 +28,8 @@ func TestGetUser(t *testing.T) {
 
 func TestValidatePassword(t *testing.T) {
 	ur := getUserLdapRepository()
+	err := ur.SetPassword("jerso", "passw0rd")
+	assert.NoError(t, err)
 	tests := []struct {
 		name     string
 		user     string
@@ -49,8 +51,11 @@ func TestValidatePassword(t *testing.T) {
 
 func TestCreateUser(t *testing.T) {
 	ur := getUserLdapRepository()
+
+	userID := uuid.New().String()
+
 	user := models.User{
-		ID: "user1",
+		ID: userID,
 	}
 	user, err := ur.CreateUser(user)
 	assert.NoError(t, err)

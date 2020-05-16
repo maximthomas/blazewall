@@ -75,15 +75,6 @@ var (
 				UserDataStore: config.UserDataStore{
 					Repo: repo.NewInMemoryUserRepository(),
 				},
-				Session: config.Session{
-					Type:    "stateless",
-					Expires: 60000,
-					Jwt: config.SessionJWT{
-						Issuer:     "http://auth-service",
-						PrivateKey: privateKey,
-						PublicKey:  publicKey,
-					},
-				},
 			},
 		},
 	}
@@ -91,8 +82,17 @@ var (
 	conf = config.Config{
 		Authentication: ac,
 		Logger:         logrus.New(),
-		SessionDataStore: config.SessionDataStore{
-			Repo: repo.NewInMemorySessionRepository(),
+		Session: config.Session{
+			Type:    "stateless",
+			Expires: 60000,
+			Jwt: config.SessionJWT{
+				Issuer:     "http://auth-service",
+				PrivateKey: privateKey,
+				PublicKey:  publicKey,
+			},
+			DataStore: config.SessionDataStore{
+				Repo: repo.NewInMemorySessionRepository(),
+			},
 		},
 	}
 

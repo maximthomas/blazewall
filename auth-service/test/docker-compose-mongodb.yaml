@@ -11,6 +11,11 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: changeme
 
+  openldap:
+    image: kazhar/openldap-demo
+    ports:
+      - "50389:389"
+
   mongo-express:
     image: mongo-express
     restart: always

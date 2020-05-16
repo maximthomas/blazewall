@@ -48,7 +48,10 @@ func NewKerberosModule(base BaseAuthModule) *Kerberos {
 		ktData := ktDataProp.(string)
 		b, _ := hex.DecodeString(ktData)
 		kt = keytab.New()
-		kt.Unmarshal(b)
+		err = kt.Unmarshal(b)
+		if err != nil {
+			panic(err)
+		}
 	}
 	log.Print(kt)
 

@@ -71,13 +71,14 @@ var (
 				PublicKey:    publicKey,
 				PrivateKeyID: "dummy",
 			},
+			DataStore: config.SessionDataStore{Repo: repo.NewInMemorySessionRepository()},
 		},
 	}
 	router = setupRouter(conf)
 )
 
 func TestSetupRouter(t *testing.T) {
-	assert.Equal(t, 2, len(router.Routes()))
+	assert.Equal(t, 3, len(router.Routes()))
 }
 
 const target = "http://localhost/auth-service/v1/login/staff/default"
@@ -175,6 +176,7 @@ func TestLogin(t *testing.T) {
 	})
 
 	t.Run("Test successful authentication", func(t *testing.T) {
+		ur.SetPassword("jerso", "passw0rd")
 		request := httptest.NewRequest("GET", target, nil)
 		recorder := httptest.NewRecorder()
 

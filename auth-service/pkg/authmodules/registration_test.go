@@ -34,7 +34,6 @@ var b = BaseAuthModule{
 		UserDataStore: config.UserDataStore{
 			Repo: repo.NewInMemoryUserRepository(),
 		},
-		Session: config.Session{},
 	},
 }
 

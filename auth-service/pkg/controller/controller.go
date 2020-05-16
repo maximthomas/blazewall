@@ -20,14 +20,16 @@ import (
 type LoginController struct {
 	auth   config.Authentication
 	sr     repo.SessionRepository
+	sess   config.Session
 	logger logrus.FieldLogger
 }
 
 func NewLoginController(config config.Config) *LoginController {
 	logger := config.Logger.WithField("module", "LoginController")
 	auth := config.Authentication
+	sess := config.Session
 	sr := config.Session.DataStore.Repo
-	return &LoginController{auth, sr, logger}
+	return &LoginController{auth, sr, sess, logger}
 }
 
 func (l LoginController) Login(realmId string, authChainId string, c *gin.Context) {
@@ -222,7 +224,7 @@ func (l LoginController) updateLoginSessionState(lss *auth.LoginSessionState) er
 }
 
 func (l LoginController) createSession(lss *auth.LoginSessionState, realm config.Realm) (sessId string, err error) {
-	sc := config.GetConfig().Session
+	sc := l.sess
 	if lss.UserId == "" {
 		return sessId, errors.New("user id is not set")
 	}
