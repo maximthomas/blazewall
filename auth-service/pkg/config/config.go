@@ -17,9 +17,9 @@ import (
 )
 
 type Config struct {
-	Authentication   Authentication
-	SessionDataStore SessionDataStore
-	Logger           logrus.FieldLogger
+	Authentication Authentication
+	Logger         logrus.FieldLogger
+	Session        Session `yaml:"session"`
 }
 
 type Authentication struct {
@@ -31,7 +31,6 @@ type Realm struct {
 	Modules       map[string]Module    `yaml:"modules"`
 	AuthChains    map[string]AuthChain `yaml:"authChains"`
 	UserDataStore UserDataStore        `yaml:"userDataStore"`
-	Session       Session              `yaml:"session"`
 }
 
 type AuthChain struct {
@@ -55,9 +54,10 @@ type ChainModule struct {
 }
 
 type Session struct {
-	Type    string     `yaml:"type"`
-	Expires int        `yaml:"expires"`
-	Jwt     SessionJWT `yaml:"jwt"`
+	Type      string           `yaml:"type"`
+	Expires   int              `yaml:"expires"`
+	Jwt       SessionJWT       `yaml:"jwt,omitempty"`
+	DataStore SessionDataStore `yaml:"dataStore,omitempty"`
 }
 
 type SessionJWT struct {
@@ -92,20 +92,6 @@ func InitConfig() error {
 	}
 	for id, realm := range auth.Realms {
 		realm.ID = id
-
-		if realm.Session.Type == "stateless" {
-			jwt := &realm.Session.Jwt
-			privateKeyBlock, _ := pem.Decode([]byte(jwt.PrivateKeyPem))
-			privateKey, err := x509.ParsePKCS1PrivateKey(privateKeyBlock.Bytes)
-			if err != nil {
-				log.Fatal(err)
-				return err
-			}
-			jwt.PrivateKey = privateKey
-			jwt.PublicKey = &privateKey.PublicKey
-			jwt.PrivateKeyID = uuid.New().String()
-		}
-
 		if realm.UserDataStore.Type == "ldap" {
 			prop := realm.UserDataStore.Properties
 			repo := &repo.UserLdapRepository{}
@@ -129,19 +115,32 @@ func InitConfig() error {
 		auth.Realms[id] = realm
 	}
 
-	if config.SessionDataStore.Type == "mongo" {
-		prop := config.SessionDataStore.Properties
+	if config.Session.Type == "stateless" {
+		jwt := &config.Session.Jwt
+		privateKeyBlock, _ := pem.Decode([]byte(jwt.PrivateKeyPem))
+		privateKey, err := x509.ParsePKCS1PrivateKey(privateKeyBlock.Bytes)
+		if err != nil {
+			log.Fatal(err)
+			return err
+		}
+		jwt.PrivateKey = privateKey
+		jwt.PublicKey = &privateKey.PublicKey
+		jwt.PrivateKeyID = uuid.New().String()
+	}
+
+	if config.Session.DataStore.Type == "mongo" {
+		prop := config.Session.DataStore.Properties
 		params := make(map[string]string)
 		mapstructure.Decode(&prop, &params)
 		url, _ := params["url"]
 		db, _ := params["database"]
 		col, _ := params["collection"]
-		config.SessionDataStore.Repo, err = repo.NewMongoSessionRepository(url, db, col)
+		config.Session.DataStore.Repo, err = repo.NewMongoSessionRepository(url, db, col)
 		if err != nil {
 			panic(err)
 		}
 	} else {
-		config.SessionDataStore.Repo = repo.NewInMemorySessionRepository()
+		config.Session.DataStore.Repo = repo.NewInMemorySessionRepository()
 	}
 
 	configLogger.Infof("got configuration %+v", auth)

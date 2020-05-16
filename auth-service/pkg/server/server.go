@@ -19,7 +19,7 @@ func setupRouter(conf config.Config) *gin.Engine {
 	router.Use(c)
 
 	var loginController = controller.NewLoginController(conf)
-	var idmController = controller.NewIdmController(conf)
+	var idmController = controller.NewIDMController(conf)
 
 	v1 := router.Group("/auth-service/v1")
 	{
@@ -40,7 +40,7 @@ func setupRouter(conf config.Config) *gin.Engine {
 		idm := v1.Group("/idm")
 		{
 			idm.GET("", func(context *gin.Context) {
-
+				idmController.Profile(context)
 			})
 		}
 

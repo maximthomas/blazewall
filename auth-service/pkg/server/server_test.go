@@ -35,10 +35,11 @@ var ur = &repo.UserLdapRepository{
 var (
 	authConf = config.Authentication{
 		Realms: map[string]config.Realm{
-			"staff": {Modules: map[string]config.Module{
-				"login":    {Type: "login"},
-				"kerberos": {Type: "kerberos"},
-			},
+			"staff": {
+				Modules: map[string]config.Module{
+					"login":    {Type: "login"},
+					"kerberos": {Type: "kerberos"},
+				},
 				AuthChains: map[string]config.AuthChain{
 					"default": {Modules: []config.ChainModule{
 						{
@@ -51,16 +52,8 @@ var (
 						},
 					}},
 				},
-				UserRepo: ur,
-				Session: config.Session{
-					Type:    "stateless",
-					Expires: 60000,
-					Jwt: config.SessionJWT{
-						Issuer:       "http://auth-service",
-						PrivateKey:   privateKey,
-						PublicKey:    publicKey,
-						PrivateKeyID: "dummy",
-					},
+				UserDataStore: config.UserDataStore{
+					Repo: ur,
 				},
 			},
 		},
@@ -69,6 +62,16 @@ var (
 	conf = config.Config{
 		Authentication: authConf,
 		Logger:         logrus.New(),
+		Session: config.Session{
+			Type:    "stateless",
+			Expires: 60000,
+			Jwt: config.SessionJWT{
+				Issuer:       "http://auth-service",
+				PrivateKey:   privateKey,
+				PublicKey:    publicKey,
+				PrivateKeyID: "dummy",
+			},
+		},
 	}
 	router = setupRouter(conf)
 )

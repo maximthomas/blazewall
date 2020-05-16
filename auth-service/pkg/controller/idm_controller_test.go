@@ -24,7 +24,7 @@ func TestIDMController_Profile(t *testing.T) {
 			"test": "test",
 		},
 	}
-	_, err := conf.SessionDataStore.Repo.CreateSession(sess)
+	_, err := conf.Session.DataStore.Repo.CreateSession(sess)
 	assert.NoError(t, err)
 
 	recorder := httptest.NewRecorder()

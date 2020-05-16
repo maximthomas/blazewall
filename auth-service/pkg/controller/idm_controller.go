@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/dgrijalva/jwt-go"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -16,7 +17,7 @@ type IDMController struct {
 
 func NewIDMController(config config.Config) *IDMController {
 	logger := config.Logger.WithField("module", "IDMController")
-	sr := config.SessionDataStore.Repo
+	sr := config.Session.DataStore.Repo
 	return &IDMController{sr, logger}
 }
 
@@ -27,7 +28,13 @@ func (ic IDMController) Profile(c *gin.Context) {
 	} else {
 		s, err := ic.sr.GetSession(sessID)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Not authenticated"})
+			token, err := jwt.Parse(sessID, func(token *jwt.Token) (interface{}, error) {
+				return config.GetConfig().Session.Jwt.PublicKey, nil
+			})
+			if err != nil {
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Not authenticated"})
+			}
+			c.JSON(http.StatusOK, token)
 		} else {
 			c.JSON(http.StatusOK, s)
 		}

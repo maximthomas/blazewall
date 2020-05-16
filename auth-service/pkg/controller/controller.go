@@ -26,7 +26,7 @@ type LoginController struct {
 func NewLoginController(config config.Config) *LoginController {
 	logger := config.Logger.WithField("module", "LoginController")
 	auth := config.Authentication
-	sr := config.SessionDataStore.Repo
+	sr := config.Session.DataStore.Repo
 	return &LoginController{auth, sr, logger}
 }
 
@@ -222,7 +222,7 @@ func (l LoginController) updateLoginSessionState(lss *auth.LoginSessionState) er
 }
 
 func (l LoginController) createSession(lss *auth.LoginSessionState, realm config.Realm) (sessId string, err error) {
-
+	sc := config.GetConfig().Session
 	if lss.UserId == "" {
 		return sessId, errors.New("user id is not set")
 	}
@@ -230,21 +230,21 @@ func (l LoginController) createSession(lss *auth.LoginSessionState, realm config
 	user, userExists := realm.UserDataStore.Repo.GetUser(lss.UserId)
 
 	var sessionID string
-	if realm.Session.Type == "stateless" {
+	if sc.Type == "stateless" {
 		token := jwt.New(jwt.SigningMethodRS256)
 		claims := token.Claims.(jwt.MapClaims)
-		exp := time.Second * time.Duration(rand.Intn(realm.Session.Expires))
+		exp := time.Second * time.Duration(rand.Intn(sc.Expires))
 		claims["exp"] = time.Now().Add(exp).Unix()
-		claims["jti"] = realm.Session.Jwt.PrivateKeyID
+		claims["jti"] = sc.Jwt.PrivateKeyID
 		claims["iat"] = time.Now().Unix()
-		claims["iss"] = realm.Session.Jwt.Issuer
+		claims["iss"] = sc.Jwt.Issuer
 		claims["sub"] = lss.UserId
 		if userExists {
 			claims["props"] = user.Properties
 		}
 
-		token.Header["jks"] = realm.Session.Jwt.PrivateKeyID
-		ss, _ := token.SignedString(realm.Session.Jwt.PrivateKey)
+		token.Header["jks"] = sc.Jwt.PrivateKeyID
+		ss, _ := token.SignedString(sc.Jwt.PrivateKey)
 		sessionID = ss
 	} else {
 		sessionID = uuid.New().String()
