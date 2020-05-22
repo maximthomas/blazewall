@@ -53,16 +53,7 @@ export class LoginApp extends React.Component {
         }).then((response) => {
                 return response.json();
         }).then((data) => {
-                if (data['callbacks']) {
-                    this.setState({ callbacks: data['callbacks'] });
-                }
-                if (data['module']) {
-                    this.setState({ module: data['module'] })
-                }
-                if (data['error']) {
-                    console.log(data["error"])
-                    this.setState({ failed: true })
-                }
+            this.processAuthData(data);
             }).catch((e) => {
                 console.log(e)
                 this.setState({ failed: true })
@@ -100,19 +91,7 @@ export class LoginApp extends React.Component {
             return response.json();
         })
             .then((data) => {
-                if (data['callbacks']) {
-                    this.setState({ callbacks: data['callbacks'] });
-                }
-                if (data['module']) {
-                    this.setState({ module: data['module'] });
-                }
-                if (data["status"]) {
-                    if (data["status"] === "success") {
-                         this.setState({ succeeded: true } );
-                    } else if (data["status"] === "failed") {
-                        this.setState({ failed: true });
-                    }
-                }
+                this.processAuthData(data);
             });
 
         return false;
@@ -123,6 +102,23 @@ export class LoginApp extends React.Component {
             this.setState({authState: signUpState}, () =>this.getCallbacks());
         } else {
             this.setState({authState: signInState}, () => this.getCallbacks());
+        }
+    }
+
+    processAuthData = (data) => {
+        if (data['callbacks']) {
+            this.setState({ callbacks: data['callbacks'] });
+        }
+        if (data['module']) {
+            this.setState({ module: data['module'] });
+        }
+        if (data["status"]) {
+            if (data["status"] === "success") {
+                this.setState({ succeeded: true });
+            }
+            else if (data["status"] === "failed") {
+                this.setState({ failed: true });
+            }
         }
     }
 
