@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/maximthomas/blazewall/auth-service/pkg/config"
 	"github.com/maximthomas/blazewall/auth-service/pkg/server"
@@ -70,6 +71,7 @@ func initConfig() {
 	}
 
 	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())

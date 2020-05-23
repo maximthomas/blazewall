@@ -33,7 +33,7 @@ export class Profile extends React.Component {
         if (!!this.state.session["Claims"]) {
             return <div>
                 <p>Login: {this.state.session["Claims"]["sub"]}</p>
-                <p>Name: {this.state.session["Claims"]["props"]["name"]}</p>
+                <p>Name: {this.state.session["Claims"].props?.name}</p>
             </div>
         }
         else  {

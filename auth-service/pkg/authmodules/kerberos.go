@@ -28,8 +28,8 @@ type Kerberos struct {
 }
 
 const (
-	keyTabFileProperty = "keyTabFile"
-	keyTabDataProperty = "keyTabData"
+	keyTabFileProperty = "keytabfile"
+	keyTabDataProperty = "keytabdata"
 )
 
 func NewKerberosModule(base BaseAuthModule) *Kerberos {
@@ -56,7 +56,6 @@ func NewKerberosModule(base BaseAuthModule) *Kerberos {
 	log.Print(kt)
 
 	k.kt = kt
-
 	return k
 }
 
