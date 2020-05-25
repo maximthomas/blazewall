@@ -28,8 +28,9 @@ type Kerberos struct {
 }
 
 const (
-	keyTabFileProperty = "keytabfile"
-	keyTabDataProperty = "keytabdata"
+	keyTabFileProperty       = "keytabfile"
+	keyTabDataProperty       = "keytabdata"
+	servicePrincipalProperty = "serviceprincipal"
 )
 
 func NewKerberosModule(base BaseAuthModule) *Kerberos {
@@ -53,9 +54,11 @@ func NewKerberosModule(base BaseAuthModule) *Kerberos {
 			panic(err)
 		}
 	}
-	log.Print(kt)
-
 	k.kt = kt
+	if spProp, ok := k.BaseAuthModule.properties[servicePrincipalProperty]; ok {
+		k.servicePrincipal = spProp.(string)
+	}
+
 	return k
 }
 
@@ -134,7 +137,7 @@ func (k *Kerberos) Process(lss *auth.LoginSessionState, c *gin.Context) (ms auth
 	return auth.InProgress, k.callbacks, err
 }
 
-func (k *Kerberos) ProcessCallbacks(inCbs []models.Callback, lss *auth.LoginSessionState, c *gin.Context) (ms auth.ModuleState, cbs []models.Callback, err error) {
+func (k *Kerberos) ProcessCallbacks(_ []models.Callback, _ *auth.LoginSessionState, c *gin.Context) (ms auth.ModuleState, cbs []models.Callback, err error) {
 	c.Header(spnego.HTTPHeaderAuthResponse, spnego.HTTPHeaderAuthResponseValueKey)
 	c.AbortWithStatus(http.StatusUnauthorized)
 	return auth.InProgress, k.callbacks, err

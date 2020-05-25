@@ -16,7 +16,8 @@ import (
 func TestKerberos(t *testing.T) {
 	b := BaseAuthModule{
 		properties: map[string]interface{}{
-			keyTabDataProperty: testdata.TESTUSER1_USERKRB5_AD_KEYTAB,
+			keyTabDataProperty:       testdata.TESTUSER1_USERKRB5_AD_KEYTAB,
+			servicePrincipalProperty: "HTTP/authservice@ADKERBEROS",
 		},
 	}
 	k := NewKerberosModule(b)
