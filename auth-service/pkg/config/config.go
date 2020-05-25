@@ -20,6 +20,7 @@ type Config struct {
 	Authentication Authentication
 	Logger         logrus.FieldLogger
 	Session        Session `yaml:"session"`
+	Server         Server  `yaml:"server"`
 }
 
 type Authentication struct {
@@ -74,6 +75,14 @@ type SessionDataStore struct {
 	Properties map[string]string
 }
 
+type Server struct {
+	Cors Cors
+}
+
+type Cors struct {
+	AllowedOrigins []string
+}
+
 var config Config
 
 func InitConfig() error {
@@ -94,21 +103,29 @@ func InitConfig() error {
 		realm.ID = id
 		if realm.UserDataStore.Type == "ldap" {
 			prop := realm.UserDataStore.Properties
-			repo := &repo.UserLdapRepository{}
-			mapstructure.Decode(prop, repo)
-			realm.UserDataStore.Repo = repo
+			ur := &repo.UserLdapRepository{}
+			err := mapstructure.Decode(prop, ur)
+			if err != nil {
+				log.Fatal(err)
+				return err
+			}
+			realm.UserDataStore.Repo = ur
 		} else if realm.UserDataStore.Type == "mongodb" {
 			prop := realm.UserDataStore.Properties
 			params := make(map[string]string)
-			mapstructure.Decode(&prop, &params)
+			err := mapstructure.Decode(&prop, &params)
+			if err != nil {
+				log.Fatal(err)
+				return err
+			}
 			url, _ := params["url"]
 			db, _ := params["database"]
 			col, _ := params["collection"]
-			repo, err := repo.NewUserMongoRepository(url, db, col)
+			ur, err := repo.NewUserMongoRepository(url, db, col)
 			if err != nil {
 				panic(err)
 			}
-			realm.UserDataStore.Repo = repo
+			realm.UserDataStore.Repo = ur
 		} else {
 			realm.UserDataStore.Repo = repo.NewInMemoryUserRepository()
 		}
@@ -131,7 +148,11 @@ func InitConfig() error {
 	if config.Session.DataStore.Type == "mongo" {
 		prop := config.Session.DataStore.Properties
 		params := make(map[string]string)
-		mapstructure.Decode(&prop, &params)
+		err := mapstructure.Decode(&prop, &params)
+		if err != nil {
+			log.Fatal(err)
+			return err
+		}
 		url, _ := params["url"]
 		db, _ := params["database"]
 		col, _ := params["collection"]
@@ -146,10 +167,6 @@ func InitConfig() error {
 	configLogger.Infof("got configuration %+v", auth)
 
 	return nil
-}
-
-func GetAuthConfig() Authentication {
-	return config.Authentication
 }
 
 func GetConfig() Config {

@@ -11,7 +11,7 @@ func setupRouter(conf config.Config) *gin.Engine {
 	router := gin.Default()
 
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowedOrigins:   conf.Server.Cors.AllowedOrigins,
 		AllowCredentials: true,
 		Debug:            true,
 	})
@@ -51,5 +51,8 @@ func setupRouter(conf config.Config) *gin.Engine {
 func RunServer() {
 	ac := config.GetConfig()
 	router := setupRouter(ac)
-	router.Run(":" + "8080")
+	err := router.Run(":" + "8080")
+	if err != nil {
+		panic(err)
+	}
 }

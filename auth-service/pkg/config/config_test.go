@@ -13,7 +13,8 @@ func TestReadConfigFileViper(t *testing.T) {
 	viper.AddConfigPath("../..")       // optionally look for config in the working directory
 	err := viper.ReadInConfig()        // Find and read the config file
 	assert.NoError(t, err)
-	InitConfig()
+	err = InitConfig()
+	assert.NoError(t, err)
 	conf := GetConfig()
 	assert.NotNil(t, conf.Authentication)
 	r := conf.Authentication.Realms["staff"]
@@ -23,4 +24,5 @@ func TestReadConfigFileViper(t *testing.T) {
 	assert.NotEmpty(t, config.Session.Jwt.PrivateKeyID)
 	assert.NotNil(t, config.Session.Jwt.PublicKey)
 	assert.NotNil(t, config.Session.Jwt.PrivateKey)
+	assert.Equal(t, 1, len(conf.Server.Cors.AllowedOrigins))
 }
