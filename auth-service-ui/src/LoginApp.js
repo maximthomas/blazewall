@@ -39,7 +39,7 @@ export class LoginApp extends React.Component {
         }
     }
     componentDidUpdate(prevProps, prevState, ss) {
-        console.log(prevState, this.state);
+        //console.log(prevState, this.state);
     }
 
     componentDidMount() {

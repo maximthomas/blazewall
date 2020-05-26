@@ -35,7 +35,7 @@ export class Profile extends React.Component {
             let propsElements = []
             if(!!props) {
                 Object.keys(props).forEach((k) => {
-                    props.push(<p key={k}>{k}: {props[k]}</p>)
+                    propsElements.push(<p key={k}>{k}: {props[k]}</p>)
                 });
             }
             return <div>
