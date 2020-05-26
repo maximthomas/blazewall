@@ -52,4 +52,9 @@ session:
     properties:
       url: "mongodb://root:changeme@localhost:27017"
       database:   "session"
-      collection: "session"
+      collection: "sessions"
+
+server:
+  cors:
+    allowedOrigins:
+      - http://localhost:3000

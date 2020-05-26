@@ -4,8 +4,6 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
-	"log"
-
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/google/uuid"
@@ -106,21 +104,21 @@ func InitConfig() error {
 			ur := &repo.UserLdapRepository{}
 			err := mapstructure.Decode(prop, ur)
 			if err != nil {
-				log.Fatal(err)
+				configLogger.Fatal(err)
 				return err
 			}
 			realm.UserDataStore.Repo = ur
 		} else if realm.UserDataStore.Type == "mongodb" {
 			prop := realm.UserDataStore.Properties
-			params := make(map[string]string)
+			params := make(map[string]interface{})
 			err := mapstructure.Decode(&prop, &params)
 			if err != nil {
-				log.Fatal(err)
+				configLogger.Fatal(err)
 				return err
 			}
-			url, _ := params["url"]
-			db, _ := params["database"]
-			col, _ := params["collection"]
+			url, _ := params["url"].(string)
+			db, _ := params["database"].(string)
+			col, _ := params["collection"].(string)
 			ur, err := repo.NewUserMongoRepository(url, db, col)
 			if err != nil {
 				panic(err)
@@ -137,7 +135,7 @@ func InitConfig() error {
 		privateKeyBlock, _ := pem.Decode([]byte(jwt.PrivateKeyPem))
 		privateKey, err := x509.ParsePKCS1PrivateKey(privateKeyBlock.Bytes)
 		if err != nil {
-			log.Fatal(err)
+			configLogger.Fatal(err)
 			return err
 		}
 		jwt.PrivateKey = privateKey
@@ -150,7 +148,7 @@ func InitConfig() error {
 		params := make(map[string]string)
 		err := mapstructure.Decode(&prop, &params)
 		if err != nil {
-			log.Fatal(err)
+			configLogger.Fatal(err)
 			return err
 		}
 		url, _ := params["url"]
@@ -158,7 +156,8 @@ func InitConfig() error {
 		col, _ := params["collection"]
 		config.Session.DataStore.Repo, err = repo.NewMongoSessionRepository(url, db, col)
 		if err != nil {
-			panic(err)
+			configLogger.Fatal(err)
+			return err
 		}
 	} else {
 		config.Session.DataStore.Repo = repo.NewInMemorySessionRepository()
