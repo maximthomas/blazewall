@@ -31,9 +31,16 @@ export class Profile extends React.Component {
 
     render() {
         if (!!this.state.session["Claims"]) {
+            let props = this.state.session["Claims"]["props"];
+            let propsElements = []
+            if(!!props) {
+                Object.keys(props).forEach((k) => {
+                    props.push(<p key={k}>{k}: {props[k]}</p>)
+                });
+            }
             return <div>
                 <p>Login: {this.state.session["Claims"]["sub"]}</p>
-                <p>Name: {this.state.session["Claims"].props?.name}</p>
+                {propsElements}
             </div>
         }
         else  {
